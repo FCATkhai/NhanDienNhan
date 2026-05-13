@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:8000';
+const API_URL = 'https://nhan-dien-nhan-backend-production.up.railway.app';
 const MAX_FILES = 3;
 
 let selectedFiles = [];
@@ -190,6 +190,7 @@ function showLoading() {
     uploadSection.style.display = 'none';
     resultsSection.style.display = 'none';
     loadingSection.style.display = 'block';
+    console.log('⏳ Showing loading indicator');
 }
 
 function showUpload() {

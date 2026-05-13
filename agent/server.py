@@ -15,6 +15,7 @@ app.add_middleware(
         "http://127.0.0.1:5527",
         "http://localhost:8000",
         "http://127.0.0.1:8000",
+        "0.0.0.0", # Allow all origins for testing purposes; consider restricting in production)
     ],
     allow_credentials=True,
     allow_methods=["*"],  # Allows all methods

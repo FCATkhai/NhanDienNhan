@@ -1,0 +1,36 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./agent
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      # Add your environment variables here
+      # - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+    volumes:
+      # For development, uncomment to enable hot reload
+      # - ./agent:/app
+      - /app/__pycache__
+    restart: unless-stopped
+    # Uncomment to add resource limits
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '1'
+    #       memory: 2G
+
+  # Optional: Add frontend service
+  # frontend:
+  #   build:
+  #     context: ./client
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - backend
+  #   environment:
+  #     - REACT_APP_API_URL=http://backend:8000
