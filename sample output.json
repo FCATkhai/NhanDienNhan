@@ -1,0 +1,35 @@
+{
+    "product_name": "RidomilGold 68 WG",
+    "product_type": "thuốc trừ bệnh",
+    "manufacturer": "Công ty TNHH Syngenta Việt Nam",
+    "registration_number": "VN305180",
+    "active_ingredients": [
+        {
+            "name": "Metalaxyl M",
+            "content": "40 g/kg"
+        },
+        {
+            "name": "Mancozeb",
+            "content": "640 g/kg"
+        }
+    ],
+    "dosage": "Pha 1000g/phuy 200L, phun 5 phuy/hoa 1 lần, phun cách nhau 10 ngày.",
+    "target_crops": [
+        "ca cao",
+        "điều",
+        "cao su",
+        "thuốc lá",
+        "lạc",
+        "hồ tiêu",
+        "ngô"
+    ],
+    "target_pests": [
+        "sương mai",
+        "thán thư",
+        "đốm lá",
+        "chết cây con"
+    ],
+    "pre_harvest_interval_days": 14,
+    "expiry_date": null,
+    "confidence_score": 0.85
+}
