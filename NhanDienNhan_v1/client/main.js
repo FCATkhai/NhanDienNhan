@@ -1,4 +1,4 @@
-const API_URL = 'https://nhan-dien-nhan-backend-production.up.railway.app';
+const API_URL = 'https://nhanden-backend-production.up.railway.app/api/image/analyze';
 const MAX_FILES = 3;
 
 let selectedFiles = [];
@@ -151,36 +151,36 @@ async function submitFiles() {
 
     const formData = new FormData();
     selectedFiles.forEach(file => {
-        formData.append('files', file);
+        formData.append('images', file);
     });
 
     try {
-        console.log('📤 Sending request to:', `${API_URL}/invoke`);
-        const response = await fetch(`${API_URL}/invoke`, {
+        console.log('📤 Gửi yêu cầu đến:', `${API_URL}`);
+        const response = await fetch(`${API_URL}`, {
             method: 'POST',
             body: formData
         });
 
-        console.log('📥 Response status:', response.status);
-        console.log('📥 Response headers:', response.headers);
+        console.log('📥 Trạng thái phản hồi:', response.status);
+        console.log('📥 Headers phản hồi:', response.headers);
 
         if (!response.ok) {
-            let errorMsg = `Lỗi server: ${response.status}`;
+            let errorMsg = `Lỗi máy chủ: ${response.status}`;
             try {
                 const error = await response.json();
-                console.log('❌ Error response:', error);
+                console.log('❌ Phản hồi lỗi:', error);
                 errorMsg = error.detail || errorMsg;
             } catch (_) {
-                console.log('❌ Could not parse error response');
+                console.log('❌ Không thể phân tích phản hồi lỗi');
             }
             throw new Error(errorMsg);
         }
 
         const data = await response.json();
-        console.log('✅ Response data:', data);
+        console.log('✅ Dữ liệu phản hồi:', data);
         showResults(data);
     } catch (error) {
-        console.error('❌ Request failed:', error);
+        console.error('❌ Yêu cầu thất bại:', error);
         showError(`Lỗi: ${error.message}`);
         showUpload();
     }
@@ -190,7 +190,7 @@ function showLoading() {
     uploadSection.style.display = 'none';
     resultsSection.style.display = 'none';
     loadingSection.style.display = 'block';
-    console.log('⏳ Showing loading indicator');
+    console.log('⏳ Đang hiển thị chỉ báo tải');
 }
 
 function showUpload() {
@@ -199,25 +199,35 @@ function showUpload() {
     loadingSection.style.display = 'none';
 }
 
-function showResults(data) {
+function showResults(response) {
     uploadSection.style.display = 'none';
     loadingSection.style.display = 'none';
     resultsSection.style.display = 'block';
+
+    // Parse the response field which contains the product info as JSON string
+    let data;
+    try {
+        data = JSON.parse(response.data.response);
+    } catch (e) {
+        showError('Lỗi xử lý dữ liệu phản hồi');
+        showUpload();
+        return;
+    }
 
     let html = `
         <div class="product-header">
             <div class="product-name">${escapeHtml(data.product_name)}</div>
             <div class="product-meta">
                 ${data.product_type ? `<div class="meta-item">
-                    <div class="meta-label">Type</div>
+                    <div class="meta-label">Loại</div>
                     <div class="meta-value">${escapeHtml(data.product_type)}</div>
                 </div>` : ''}
                 ${data.manufacturer ? `<div class="meta-item">
-                    <div class="meta-label">Manufacturer</div>
+                    <div class="meta-label">Nhà sản xuất</div>
                     <div class="meta-value">${escapeHtml(data.manufacturer)}</div>
                 </div>` : ''}
                 ${data.registration_number ? `<div class="meta-item">
-                    <div class="meta-label">Registration</div>
+                    <div class="meta-label">Số đăng ký</div>
                     <div class="meta-value">${escapeHtml(data.registration_number)}</div>
                 </div>` : ''}
             </div>
@@ -227,7 +237,7 @@ function showResults(data) {
     if (data.active_ingredients && data.active_ingredients.length > 0) {
         html += `
             <div class="section">
-                <div class="section-title">🧪 Active Ingredients</div>
+                <div class="section-title">🧪 Thành phần hoạt chất</div>
                 <div class="ingredients-list">
         `;
         data.active_ingredients.forEach(ingredient => {
@@ -244,7 +254,7 @@ function showResults(data) {
     if (data.dosage) {
         html += `
             <div class="section">
-                <div class="section-title">📋 Usage & Dosage</div>
+                <div class="section-title">📋 Cách sử dụng & Liều lượng</div>
                 <div class="dosage-box">${escapeHtml(data.dosage)}</div>
             </div>
         `;
@@ -253,7 +263,7 @@ function showResults(data) {
     if (data.target_crops && data.target_crops.length > 0) {
         html += `
             <div class="section">
-                <div class="section-title">🌱 Target Crops</div>
+                <div class="section-title">🌱 Cây trồng</div>
                 <div class="crops-list">
         `;
         data.target_crops.forEach(crop => {
@@ -265,7 +275,7 @@ function showResults(data) {
     if (data.target_pests && data.target_pests.length > 0) {
         html += `
             <div class="section">
-                <div class="section-title">🐛 Target Pests/Diseases</div>
+                <div class="section-title">🐛 Sâu bệnh mục tiêu</div>
                 <div class="pests-list">
         `;
         data.target_pests.forEach(pest => {
@@ -277,8 +287,8 @@ function showResults(data) {
     if (data.pre_harvest_interval_days) {
         html += `
             <div class="section">
-                <div class="section-title">⏰ Pre-Harvest Interval</div>
-                <div class="dosage-box">${data.pre_harvest_interval_days} days</div>
+                <div class="section-title">⏰ Thời gian cách ly trước thu hoạch</div>
+                <div class="dosage-box">${data.pre_harvest_interval_days} ngày</div>
             </div>
         `;
     }
@@ -289,7 +299,7 @@ function showResults(data) {
         html += `
             <div class="section" style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #eee;">
                 <span class="confidence ${confidenceClass}">
-                    ✓ Confidence: ${confidence.toFixed(0)}%
+                    ✓ Độ tin cậy: ${confidence.toFixed(0)}%
                 </span>
             </div>
         `;
@@ -300,7 +310,7 @@ function showResults(data) {
     // Add reset button
     const resetBtn = document.createElement('button');
     resetBtn.className = 'submit-btn';
-    resetBtn.textContent = '↺ Upload New Images';
+    resetBtn.textContent = '↺ Tải lên ảnh mới';
     resetBtn.style.marginTop = '24px';
     resetBtn.onclick = resetApp;
     resultsContent.appendChild(resetBtn);
