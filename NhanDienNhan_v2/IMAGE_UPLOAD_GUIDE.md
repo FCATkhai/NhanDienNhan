@@ -47,16 +47,29 @@ Fields:
 - prompt (String, optional): Custom prompt
 ```
 
-**Response (Single Image):**
+**Response (Single Image - Success):**
 ```json
 {
   "success": true,
   "data": {
-    "response": "{\"product_name\":\"Example Product\",\"manufacturer\":\"Example Mfg\",\"product_type\":\"Type\",\"active_ingredients\":[{\"name\":\"Ingredient 1\",\"content\":\"100g/kg\"}],\"target_crops\":[\"crop1\"],\"target_pests\":[\"pest1\"],\"dosage\":\"Usage info\",\"registration_number\":\"VN123456\",\"pre_harvest_interval_days\":7,\"expiry_date\":null,\"confidence_score\":0.95}",
+    "response": "{\"success\":true,\"error_code\":\"NONE\",\"message\":\"Product information extracted successfully\",\"product_name\":\"Example Product\",\"manufacturer\":\"Example Mfg\",\"product_type\":\"Insecticide\",\"registration_number\":\"VN123456\",\"active_ingredients\":[{\"name\":\"Ingredient 1\",\"content\":\"100g/kg\"}],\"dosage\":\"Usage info\",\"target_crops\":[\"crop1\"],\"target_pests\":[\"pest1\"],\"pre_harvest_interval_days\":7,\"expiry_date\":null,\"confidence_score\":0.95}",
     "fileName": "image.jpg",
     "mimeType": "image/jpeg",
     "totalImages": 1
   }
+}
+```
+
+**Response (Single Image - Error):**
+```json
+{
+    "success": true,
+    "data": {
+        "response": "{\"active_ingredients\":null,\"confidence_score\":0.3,\"dosage\":null,\"error_code\":\"BLURRY_IMAGE\",\"expiry_date\":null,\"manufacturer\":null,\"message\":\"Ảnh mờ, không thể trích xuất thông tin chính xác.\",\"pre_harvest_interval_days\":null,\"product_name\":\"Ridomil Gold\",\"product_type\":null,\"registration_number\":null,\"success\":false,\"target_crops\":null,\"target_pests\":null}",
+        "fileName": "image.png",
+        "mimeType": "image/png",
+        "totalImages": 1
+    }
 }
 ```
 
@@ -65,13 +78,13 @@ Fields:
 {
   "success": true,
   "data": {
-    "response": "{\"product_name\":\"Example Product\",\"manufacturer\":\"Example Mfg\",\"product_type\":\"Type\",\"active_ingredients\":[{\"name\":\"Ingredient 1\",\"content\":\"100g/kg\"}],\"target_crops\":[\"crop1\"],\"target_pests\":[\"pest1\"],\"dosage\":\"Usage info\",\"registration_number\":\"VN123456\",\"pre_harvest_interval_days\":7,\"expiry_date\":null,\"confidence_score\":0.95}",
+    "response": "{\"success\":true,\"error_code\":\"NONE\",\"message\":\"Product information extracted from images\",\"product_name\":\"Example Product\",\"manufacturer\":\"Example Mfg\",\"product_type\":\"Fertilizer\",\"registration_number\":\"VN123456\",\"active_ingredients\":[{\"name\":\"Ingredient 1\",\"content\":\"100g/kg\"}],\"dosage\":\"Usage info\",\"target_crops\":[\"crop1\"],\"target_pests\":[\"pest1\"],\"pre_harvest_interval_days\":7,\"expiry_date\":null,\"confidence_score\":0.95}",
     "totalImages": 2
   }
 }
 ```
 
-**Note:** The `response` field contains product information as a JSON string that needs to be parsed on the client side.
+**Note:** The `response` field contains product information as a JSON string that needs to be parsed on the client side. The LLM returns a ProductInfo object with status fields (`success`, `error_code`, `message`) and product data fields.
 
 ## Frontend Setup
 
@@ -92,12 +105,20 @@ function ImageUploadComponent() {
       // Parse the response string to get product info
       const productInfo = JSON.parse(result.data?.response);
       
-      console.log("Product:", productInfo.product_name);
-      console.log("Manufacturer:", productInfo.manufacturer);
-      console.log("Confidence:", productInfo.confidence_score);
-      console.log("Total images analyzed:", result.data?.totalImages);
+      // Check if extraction was successful
+      if (productInfo.success) {
+        console.log("Product:", productInfo.product_name);
+        console.log("Manufacturer:", productInfo.manufacturer);
+        console.log("Confidence:", productInfo.confidence_score);
+        console.log("Total images analyzed:", result.data?.totalImages);
+      } else {
+        // Handle extraction failure
+        console.error("Extraction failed:", productInfo.error_code);
+        console.error("Message:", productInfo.message);
+      }
     } else {
-      console.error("Error:", result.error);
+      // Handle upload/server error
+      console.error("Upload error:", result.error);
     }
   };
 
@@ -122,10 +143,53 @@ function ImageUploadComponent() {
 ### Response Parsing Example
 
 ```tsx
-function parseProductResponse(responseData: any) {
+interface ParsedProductResponse {
+  success: boolean;
+  errorCode: string | null;
+  message: string;
+  productName: string | null;
+  manufacturer: string | null;
+  type: string | null;
+  activeIngredients: Array<{ name: string; content: string }> | null;
+  targetCrops: string[] | null;
+  targetPests: string[] | null;
+  dosage: string | null;
+  registrationNumber: string | null;
+  preHarvestInterval: number | null;
+  expiryDate: string | null;
+  confidence: number;
+  totalImages: number;
+}
+
+function parseProductResponse(responseData: any): ParsedProductResponse {
   const productInfo = JSON.parse(responseData.response);
   
+  if (!productInfo.success) {
+    // Handle extraction failure
+    return {
+      success: false,
+      errorCode: productInfo.error_code,
+      message: productInfo.message,
+      productName: null,
+      manufacturer: null,
+      type: null,
+      activeIngredients: null,
+      targetCrops: null,
+      targetPests: null,
+      dosage: null,
+      registrationNumber: null,
+      preHarvestInterval: null,
+      expiryDate: null,
+      confidence: productInfo.confidence_score || 0,
+      totalImages: responseData.totalImages
+    };
+  }
+  
+  // Handle successful extraction
   return {
+    success: true,
+    errorCode: null,
+    message: productInfo.message,
     productName: productInfo.product_name,
     manufacturer: productInfo.manufacturer,
     type: productInfo.product_type,
@@ -135,6 +199,7 @@ function parseProductResponse(responseData: any) {
     dosage: productInfo.dosage,
     registrationNumber: productInfo.registration_number,
     preHarvestInterval: productInfo.pre_harvest_interval_days,
+    expiryDate: productInfo.expiry_date,
     confidence: productInfo.confidence_score,
     totalImages: responseData.totalImages
   };
@@ -169,17 +234,38 @@ VITE_API_URL=http://localhost:5000
 
 ## Error Handling
 
-The endpoints return error responses with status codes:
-- `400` - Bad request (no file, invalid format)
+### HTTP Status Codes
+- `200` - Request processed (check `productInfo.success` for extraction result)
+- `400` - Bad request (no file, invalid format, size limit exceeded)
 - `500` - Server error (OpenAI API failure, processing error)
 
-Example error response:
+### Server Error Response (Upload/Processing Failure)
 ```json
 {
   "success": false,
   "error": "Only image files are allowed"
 }
 ```
+
+### LLM Error Response (Extraction Failure)
+When the LLM cannot extract product information, it returns a 200 response with:
+```json
+{
+  "success": true,
+  "data": {
+    "response": "{\"success\":false,\"error_code\":\"BLURRY_IMAGE\",\"message\":\"Image is too blurry to read text\",\"product_name\":null,\"confidence_score\":0}",
+    "totalImages": 1
+  }
+}
+```
+
+### Error Codes
+- `NONE` - No error, extraction successful
+- `BLURRY_IMAGE` - Image quality too poor to read
+- `NOT_A_PRODUCT` - Image doesn't contain a product label
+- `TEXT_NOT_READABLE` - Text on label cannot be read clearly
+- `MISSING_LABEL` - Product doesn't have a visible label
+- `UNKNOWN` - Unknown error during extraction
 
 ## Testing with cURL
 

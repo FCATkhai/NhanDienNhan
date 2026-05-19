@@ -8,16 +8,35 @@ export const ActiveIngredientSchema = z.object({
 
 // ProductInfo
 export const ProductInfoSchema = z.object({
-  product_name: z.string().describe("Tên sản phẩm"),
+  // ===== STATUS =====
+  success: z.boolean().describe("Có trích xuất thành công hay không"),
 
-  product_type: z.string().describe("Loại sản phẩm"),
+  error_code: z
+    .enum([
+      "NONE",
+      "BLURRY_IMAGE",
+      "NOT_A_PRODUCT",
+      "TEXT_NOT_READABLE",
+      "MISSING_LABEL",
+      "UNKNOWN",
+    ])
+    .describe("Mã lỗi nếu thất bại"),
 
-  manufacturer: z.string().describe("Nhà sản xuất"),
+  message: z.string().describe("Thông báo cho UI"),
+
+  // ===== PRODUCT INFO =====
+  product_name: z.string().optional().nullable().describe("Tên sản phẩm"),
+
+  product_type: z.string().optional().nullable().describe("Loại sản phẩm"),
+
+  manufacturer: z.string().optional().nullable().describe("Nhà sản xuất"),
 
   registration_number: z.string().optional().nullable().describe("Số đăng ký"),
 
   active_ingredients: z
     .array(ActiveIngredientSchema)
+    .optional()
+    .nullable()
     .describe("Danh sách hoạt chất"),
 
   dosage: z.string().optional().nullable().describe("Liều lượng sử dụng"),
@@ -39,9 +58,9 @@ export const ProductInfoSchema = z.object({
     .int()
     .optional()
     .nullable()
-    .describe("Thời gian cách ly trước thu hoạch (ngày)"),
+    .describe("Thời gian cách ly trước thu hoạch"),
 
-  expiry_date: z.iso.datetime().optional().nullable().describe("Ngày hết hạn"),
+  expiry_date: z.string().optional().nullable().describe("Ngày hết hạn"),
 
   confidence_score: z
     .number()

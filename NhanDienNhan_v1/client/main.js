@@ -1,4 +1,5 @@
-const API_URL = 'https://nhanden-backend-production.up.railway.app/api/image/analyze';
+const API_URL = 'https://nhan-dien-nhan-backend-production.up.railway.app/api/image/analyze';
+// const API_URL = 'http://localhost:5000/api/image/analyze';
 const MAX_FILES = 3;
 
 let selectedFiles = [];
@@ -13,6 +14,7 @@ const submitBtn = document.getElementById('submitBtn');
 const errorMsg = document.getElementById('errorMsg');
 const uploadSection = document.getElementById('uploadSection');
 const loadingSection = document.getElementById('loadingSection');
+const sampleSection = document.getElementById('sampleSection');
 const resultsSection = document.getElementById('resultsSection');
 const resultsContent = document.getElementById('resultsContent');
 const sampleThumbs = document.querySelectorAll('.sample-thumb');
@@ -189,6 +191,7 @@ async function submitFiles() {
 function showLoading() {
     uploadSection.style.display = 'none';
     resultsSection.style.display = 'none';
+    sampleSection.style.display = 'none';
     loadingSection.style.display = 'block';
     console.log('⏳ Đang hiển thị chỉ báo tải');
 }
@@ -197,12 +200,14 @@ function showUpload() {
     uploadSection.style.display = 'block';
     resultsSection.style.display = 'none';
     loadingSection.style.display = 'none';
+    sampleSection.style.display = 'block';
 }
 
 function showResults(response) {
     uploadSection.style.display = 'none';
     loadingSection.style.display = 'none';
     resultsSection.style.display = 'block';
+    sampleSection.style.display = 'none';
 
     // Parse the response field which contains the product info as JSON string
     let data;
@@ -213,6 +218,69 @@ function showResults(response) {
         showUpload();
         return;
     }
+
+    // Display uploaded images section
+    let imagesHtml = `
+        <div class="section" style="margin-bottom: 24px; padding-bottom: 20px; border-bottom: 2px solid #667eea;">
+            <div class="section-title">📷 Ảnh đã tải lên (${selectedFiles.length})</div>
+            <div class="preview-grid">
+    `;
+
+    selectedFiles.forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.objectFit = 'cover';
+            img.style.borderRadius = '8px';
+            const container = document.querySelector(`[data-image-index="${index}"]`);
+            if (container) {
+                container.innerHTML = '';
+                container.appendChild(img);
+            }
+        };
+        reader.readAsDataURL(file);
+        imagesHtml += `<div data-image-index="${index}" class="preview-item" style="background: #f0f0f0;"></div>`;
+    });
+
+    imagesHtml += `
+            </div>
+        </div>
+    `;
+
+    // Check if LLM extraction was successful
+    if (!data.success) {
+        let errorHtml = imagesHtml + `
+            <div style="text-align: center; padding: 20px;">
+                <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+                <div style="font-size: 18px; font-weight: 600; color: #d32f2f; margin-bottom: 8px;">Không thể trích xuất thông tin</div>
+                <div style="color: #666; margin-bottom: 16px; font-size: 14px;">${escapeHtml(data.message)}</div>
+        `;
+        
+        if (data.error_code && data.error_code !== 'NONE') {
+            errorHtml += `<div style="color: #999; font-size: 12px; margin-bottom: 16px;">Mã lỗi: ${escapeHtml(data.error_code)}</div>`;
+        }
+        
+        errorHtml += `</div>`;
+        resultsContent.innerHTML = errorHtml;
+        
+        // Add reset button
+        const resetBtn = document.createElement('button');
+        resetBtn.className = 'submit-btn';
+        resetBtn.textContent = '↺ Tải lên ảnh mới';
+        resetBtn.style.marginTop = '24px';
+        resetBtn.onclick = resetApp;
+        resultsContent.appendChild(resetBtn);
+        return;
+    }
+
+    // Add images HTML to results
+    resultsContent.innerHTML = imagesHtml;
+
+    // Add images HTML to results
+    resultsContent.innerHTML = imagesHtml;
 
     let html = `
         <div class="product-header">
@@ -305,7 +373,7 @@ function showResults(response) {
         `;
     }
 
-    resultsContent.innerHTML = html;
+    resultsContent.innerHTML += html;
 
     // Add reset button
     const resetBtn = document.createElement('button');
