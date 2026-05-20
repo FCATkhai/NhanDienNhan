@@ -4,6 +4,22 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
+export interface ProductInfo {
+  success: boolean;
+  message?: string;
+  error_code?: string;
+  product_name?: string;
+  product_type?: string;
+  manufacturer?: string;
+  registration_number?: string;
+  active_ingredients?: Array<{ name: string; content: string }>;
+  dosage?: string;
+  target_crops?: string[];
+  target_pests?: string[];
+  pre_harvest_interval_days?: number;
+  confidence_score?: number;
+}
+
 export interface ImageAnalysisResponse {
   success: boolean;
   data?: {
@@ -11,21 +27,46 @@ export interface ImageAnalysisResponse {
     fileName: string;
     mimeType: string;
   };
+  message?: string;
   error?: string;
 }
 
 export interface MultipleImagesResponse {
   success: boolean;
   data?: {
-    results: Array<{
-      index: number;
-      response: string;
-      fileName: string;
-    }>;
+    response: string;
     totalImages: number;
   };
+  message?: string;
   error?: string;
 }
+
+/**
+ * Parse product info from API response
+ */
+export const parseProductInfo = (
+  response: ImageAnalysisResponse | MultipleImagesResponse,
+): ProductInfo => {
+  try {
+    if (!response.data?.response) {
+      return {
+        success: false,
+        message:
+          response.message || "Không thể trích xuất thông tin từ phản hồi",
+        error_code: "INVALID_RESPONSE",
+      };
+    }
+
+    const productInfo = JSON.parse(response.data.response) as ProductInfo;
+    return productInfo;
+  } catch (error) {
+    return {
+      success: false,
+      message: "Lỗi xử lý dữ liệu phản hồi",
+      error_code: "PARSE_ERROR",
+    };
+  }
+};
 
 /**
  * Upload a single image for analysis
@@ -86,25 +127,32 @@ export const uploadMultipleImagesForAnalysis = async (
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/image/analyze-multiple`, {
+    const response = await fetch(`${API_BASE_URL}/api/image/analyze`, {
       method: "POST",
       body: formData,
       credentials: "include",
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      return {
-        success: false,
-        error: error.error || "Failed to analyze images",
-      };
+      try {
+        const error = await response.json();
+        return {
+          success: false,
+          message: error.detail || error.error || "Failed to analyze images",
+        };
+      } catch {
+        return {
+          success: false,
+          message: `Server error: ${response.status}`,
+        };
+      }
     }
 
     return await response.json();
   } catch (error: any) {
     return {
       success: false,
-      error: error.message || "Network error while uploading images",
+      message: error.message || "Network error while uploading images",
     };
   }
 };
