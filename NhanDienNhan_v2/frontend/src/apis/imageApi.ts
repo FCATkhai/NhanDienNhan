@@ -4,10 +4,14 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
+export type ProductCategory = "pesticide" | "fish_feed";
+
 export interface ProductInfo {
   success: boolean;
+  category?: ProductCategory;
   message?: string;
   error_code?: string;
+  // Pesticide fields
   product_name?: string;
   product_type?: string;
   manufacturer?: string;
@@ -17,6 +21,16 @@ export interface ProductInfo {
   target_crops?: string[];
   target_pests?: string[];
   pre_harvest_interval_days?: number;
+  // Fish feed fields
+  variant_code?: string;
+  species?: string;
+  net_content?: string;
+  ingredients?: string;
+  nutrition_facts?: Array<{ name: string; value: string }>;
+  feeding_guide?: {
+    code?: string;
+    guide?: Array<{ name: string; value: string }>;
+  };
   confidence_score?: number;
 }
 
@@ -111,23 +125,23 @@ export const uploadImageForAnalysis = async (
 /**
  * Upload multiple images for analysis
  * @param files - Array of image files to upload
- * @param prompt - Optional custom prompt for the analysis
+ * @param category - Product category: "pesticide" (default) or "fish_feed"
  * @returns Analysis results from OpenAI
  */
 export const uploadMultipleImagesForAnalysis = async (
   files: File[],
-  prompt?: string,
+  category: ProductCategory = "pesticide",
 ): Promise<MultipleImagesResponse> => {
   const formData = new FormData();
   files.forEach((file) => {
     formData.append("images", file);
   });
-  if (prompt) {
-    formData.append("prompt", prompt);
-  }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/image/analyze`, {
+    const url = new URL(`${API_BASE_URL}/api/image/analyze`);
+    url.searchParams.append("category", category);
+
+    const response = await fetch(url.toString(), {
       method: "POST",
       body: formData,
       credentials: "include",

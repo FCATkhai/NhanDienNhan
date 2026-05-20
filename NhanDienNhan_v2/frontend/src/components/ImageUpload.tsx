@@ -1,8 +1,11 @@
 import { useState, useRef } from "react";
 import { Upload, X } from "lucide-react";
+import type { ProductCategory } from "../apis/imageApi";
 
 interface ImageUploadProps {
   onFilesSelected: (files: File[]) => void;
+  category: ProductCategory;
+  onCategoryChange: (category: ProductCategory) => void;
   isLoading?: boolean;
 }
 
@@ -14,6 +17,8 @@ const SAMPLE_IMAGES = [
 
 export function ImageUpload({
   onFilesSelected,
+  category,
+  onCategoryChange,
   isLoading = false,
 }: ImageUploadProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -122,6 +127,37 @@ export function ImageUpload({
 
   return (
     <div className="space-y-4">
+      {/* Category Selector */}
+      <div>
+        <label className="text-sm font-semibold text-gray-900 block mb-2">
+          📂 Chọn loại sản phẩm
+        </label>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={() => onCategoryChange("pesticide")}
+            disabled={isLoading}
+            className={`py-3 px-4 rounded-lg font-medium transition-all ${
+              category === "pesticide"
+                ? "bg-purple-600 text-white shadow-lg"
+                : "bg-gray-100 text-gray-900 hover:bg-gray-200"
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
+          >
+            🌿 Thuốc nông dược
+          </button>
+          <button
+            onClick={() => onCategoryChange("fish_feed")}
+            disabled={isLoading}
+            className={`py-3 px-4 rounded-lg font-medium transition-all ${
+              category === "fish_feed"
+                ? "bg-blue-600 text-white shadow-lg"
+                : "bg-gray-100 text-gray-900 hover:bg-gray-200"
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
+          >
+            🐟 Thức ăn cá
+          </button>
+        </div>
+      </div>
+
       {error && (
         <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded text-red-700 text-sm">
           {error}
