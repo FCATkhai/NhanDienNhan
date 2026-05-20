@@ -1,13 +1,6 @@
 import { z } from "zod";
 
-// ActiveIngredient
-export const ActiveIngredientSchema = z.object({
-  name: z.string().describe("Tên hoạt chất"),
-  content: z.string().describe("Hàm lượng hoạt chất"),
-});
-
-// ProductInfo
-export const ProductInfoSchema = z.object({
+const BaseProductSchema = z.object({
   // ===== STATUS =====
   success: z.boolean().describe("Có trích xuất thành công hay không"),
 
@@ -15,7 +8,7 @@ export const ProductInfoSchema = z.object({
     .enum([
       "NONE",
       "BLURRY_IMAGE",
-      "NOT_A_PRODUCT",
+      "WRONG_PRODUCT_CATEGORY",
       "TEXT_NOT_READABLE",
       "MISSING_LABEL",
       "UNKNOWN",
@@ -24,47 +17,113 @@ export const ProductInfoSchema = z.object({
 
   message: z.string().describe("Thông báo cho UI"),
 
-  // ===== PRODUCT INFO =====
-  product_name: z.string().optional().nullable().describe("Tên sản phẩm"),
-
-  product_type: z.string().optional().nullable().describe("Loại sản phẩm"),
-
-  manufacturer: z.string().optional().nullable().describe("Nhà sản xuất"),
-
-  registration_number: z.string().optional().nullable().describe("Số đăng ký"),
-
-  active_ingredients: z
-    .array(ActiveIngredientSchema)
-    .optional()
-    .nullable()
-    .describe("Danh sách hoạt chất"),
-
-  dosage: z.string().optional().nullable().describe("Liều lượng sử dụng"),
-
-  target_crops: z
-    .array(z.string())
-    .optional()
-    .nullable()
-    .describe("Danh sách cây trồng áp dụng"),
-
-  target_pests: z
-    .array(z.string())
-    .optional()
-    .nullable()
-    .describe("Danh sách bệnh/dịch hại"),
-
-  pre_harvest_interval_days: z
-    .number()
-    .int()
-    .optional()
-    .nullable()
-    .describe("Thời gian cách ly trước thu hoạch"),
-
-  expiry_date: z.string().optional().nullable().describe("Ngày hết hạn"),
+  category: z
+    .enum(["fish_feed", "pesticide", "fertilizer", "unknown"])
+    .describe("Danh mục sản phẩm"),
 
   confidence_score: z
     .number()
     .min(0)
     .max(1)
     .describe("Độ tin cậy OCR/trích xuất"),
+  manufacturer: z.string().nullable().describe("Nhà sản xuất"),
+  product_name: z.string().nullable().describe("Tên sản phẩm"),
+  net_content: z.string().nullable().describe("Định lượng của sản phẩm"),
+});
+
+// ---- SCHEMA CHI TIẾT THEO DANH MỤC SẢN PHẨM ---
+
+// Pesticide schema
+// ActiveIngredient
+export const ActiveIngredientSchema = z.object({
+  name: z.string().describe("Tên hoạt chất"),
+  content: z.string().describe("Hàm lượng hoạt chất"),
+});
+
+export const PesticideSchema = BaseProductSchema.extend({
+  // ===== PRODUCT INFO =====
+  category: z.literal("pesticide").describe("Danh mục sản phẩm"),
+
+  product_type: z.string().nullable().describe("Loại sản phẩm"),
+
+  registration_number: z.string().nullable().describe("Số đăng ký"),
+
+  active_ingredients: z
+    .array(ActiveIngredientSchema)
+    .nullable()
+    .describe("Danh sách hoạt chất"),
+
+  dosage: z.string().nullable().describe("Liều lượng sử dụng"),
+
+  target_crops: z
+    .array(z.string())
+    .nullable()
+    .describe("Danh sách cây trồng áp dụng"),
+
+  target_pests: z
+    .array(z.string())
+    .nullable()
+    .describe("Danh sách bệnh/dịch hại"),
+
+  pre_harvest_interval_days: z
+    .number()
+    .int()
+    .nullable()
+    .describe("Thời gian cách ly trước thu hoạch"),
+
+  expiry_date: z.string().nullable().describe("Ngày hết hạn"),
+});
+
+// Fish feed schema
+
+const FeedGuideVariantSchema = z.object({
+  code: z.string().nullable().describe("Mã biến thể thức ăn"),
+  guide: z
+    .array(
+      z.object({
+        name: z.string().describe("Tên mục hướng dẫn"),
+        value: z.string().describe("Nội dung hướng dẫn cho mục này"),
+      }),
+    )
+    .describe("Hướng dẫn cho từng biến thể thức ăn"),
+});
+
+export const FishFeedSchema = BaseProductSchema.extend({
+  category: z.literal("fish_feed").describe("Danh mục sản phẩm"),
+  // ===== PRODUCT INFO =====
+  product_type: z.string().nullable().describe("Loại sản phẩm"),
+  species: z.string().nullable().describe("Loài thủy sản áp dụng"),
+  ingredients: z.string().nullable().describe("Thành phần nguyên liệu"),
+  variant_code: z.string().nullable().describe("Mã biến thể của sản phẩm"),
+  nutrition_facts: z.array(
+    z
+      .object({
+        name: z.string().describe(`
+            Tên thành phần dinh dưỡng.
+            - Ưu tiên tiếng Việt nếu có song ngữ
+            - Không dịch tự động
+            `),
+        value: z.string(),
+      })
+      .describe(
+        "Thành phần dinh dưỡng (composition) tương ứng với biến thể thức ăn",
+      ),
+  ),
+  //   feeding_guide: z
+  //     .array(FeedVariantSchema)
+  //     .nullable()
+  //     .describe("Hướng dẫn cho từng biến thể thức ăn"),
+  feeding_guide: z
+    .union([
+      FeedGuideVariantSchema,
+      z
+        .string()
+        .describe(
+          "Hướng dẫn chung cho sản phẩm nếu không có biến thể nào được chọn",
+        ),
+    ])
+    .nullable()
+    .describe(
+      "Hướng dẫn cho biến thể thức ăn tương ứng với mã biến thể (variant_code)",
+    ),
 });

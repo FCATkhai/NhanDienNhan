@@ -1,9 +1,7 @@
 import express, { Request, Response, NextFunction } from "express";
 import multer from "multer";
-import {
-  processImageWithOpenAI,
-  processMultipleImagesWithOpenAI,
-} from "../utils/imageProcessor";
+import { processImagesWithOpenAI } from "../utils/imageProcessor";
+import { pesticide_prompt, feed_prompt } from "../utils/prompts";
 
 const router = express.Router();
 
@@ -26,24 +24,6 @@ const upload = multer({
     fileSize: 10 * 1024 * 1024, // 10MB limit
   },
 });
-
-const prompt = `
-        Dựa vào hình ảnh, hãy trích xuất thông tin sản phẩm. Hãy cố gắng trích xuất thông tin chính xác nhất có thể và đánh giá độ tin cậy của thông tin đó. Những field không chỉ rõ trong hình ảnh có thể để trống hoặc null.
-
-        Nếu ảnh:
-        - quá mờ
-        - không đọc được chữ
-        - không phải sản phẩm thuốc BVTV/phân bón
-        - không có nhãn
-
-        thì:
-        - success = false
-        - điền error_code phù hợp
-        - message mô tả lỗi cho UI
-        - các field còn lại để null hoặc mảng rỗng
-
-        Trả về JSON thoả mãn schema, chỉ trả về JSON, không giải thích gì thêm.
-        `;
 
 // Custom error handler for multer
 const handleMulterError = (
@@ -82,7 +62,7 @@ const handleMulterError = (
   next();
 };
 
-// POST endpoint for image analysis (accepts 1-10 images)
+// POST endpoint for default image analysis (accepts 1-10 images)
 router.post("/analyze", (req: Request, res: Response, next: NextFunction) => {
   upload.array("images", 10)(req, res, (err) => {
     if (err) {
@@ -102,41 +82,23 @@ router.post("/analyze", async (req: Request, res: Response) => {
           "No image files provided. Make sure to send files with field name 'images'",
       });
     }
+    const schemaType =
+      req.query.category === "fish_feed" ? "fish_feed" : "pesticide";
+    console.log("Processing images for category:", schemaType);
 
     const files = req.files as Express.Multer.File[];
-    // const { prompt } = req.body;
 
     console.log("Files received:", files.length);
 
-    // If only 1 image, use single image processor
-    if (files.length === 1 && files[0]) {
-      const defaultPrompt = prompt || "what's in this image?";
-      const result = await processImageWithOpenAI(
-        files[0].buffer,
-        files[0].mimetype,
-        defaultPrompt,
-      );
-
-      return res.status(200).json({
-        success: true,
-        data: {
-          response: result.response,
-          fileName: files[0].originalname,
-          mimeType: files[0].mimetype,
-          totalImages: 1,
-        },
-      });
-    }
-
-    // If multiple images (2-10), use multiple images processor
-    const defaultPrompt = prompt || "what's in these images?";
+    const prompt = schemaType === "fish_feed" ? feed_prompt : pesticide_prompt;
     const imageBuffers = files.map((file) => file.buffer);
     const imageTypes = files.map((file) => file.mimetype);
 
-    const result = await processMultipleImagesWithOpenAI(
+    const result = await processImagesWithOpenAI(
       imageBuffers,
       imageTypes,
-      defaultPrompt,
+      prompt,
+      schemaType,
     );
 
     return res.status(200).json({

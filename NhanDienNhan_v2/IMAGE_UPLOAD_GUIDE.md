@@ -317,3 +317,15 @@ Backend Response → Frontend
     ├─ Parse JSON response string
     └─ Display product information to user
 ```
+
+### tempt
+feed json response:
+```json
+{
+    "success": true,
+    "data": {
+        "response": "{\"category\":\"fish_feed\",\"confidence_score\":0.9,\"error_code\":\"NONE\",\"feeding_guide\":{\"code\":\"MK 831\",\"guide\":[{\"name\":\"Khối lượng cá (g/con)\",\"value\":\"10 - 200\"},{\"name\":\"Tỷ lệ (%) so với khối lượng đàn cá\",\"value\":\"4 - 6\"},{\"name\":\"Số lần cho ăn /ngày\",\"value\":\"3 - 4\"}]},\"ingredients\":\"Bột cá cao cấp, bột đậu nành, bột mì, cám gạo, chất dẫn dụ, Vitamin và khoáng, ...\",\"manufacturer\":\"CTY TNHH MTV THỨC ĂN THỦY SẢN MEKONG - ẤP TÂN CƯỜNG, XÃ PHÚ CƯỜNG, TỈNH ĐỒNG THÁP\",\"message\":\"Trích xuất thông tin thành công, mã biến thể MK 831.\",\"net_content\":\"25Kg\",\"nutrition_facts\":[{\"name\":\"Độ ẩm max (%)\",\"value\":\"11\"},{\"name\":\"Protein tối thiểu (%)\",\"value\":\"31\"},{\"name\":\"Béo thô tối đa (%)\",\"value\":\"6\"},{\"name\":\"Xơ thô tối đa (%)\",\"value\":\"5\"},{\"name\":\"Ca (%) tối thiểu\",\"value\":\"1.3\"},{\"name\":\"P tổng số (%) tối thiểu\",\"value\":\"1.0\"},{\"name\":\"Lysine tổng số (%) tối thiểu\",\"value\":\"1.8\"},{\"name\":\"Ethoxy quin (ppm)\",\"value\":\"<150\"}],\"product_name\":\"THỨC ĂN HỖN HỢP CHO CÁ RÔ PHI, ĐIÊU HỒNG GIAI ĐOẠN TỪ 10-200g/con MK 831\",\"product_type\":\"THỨC ĂN THỦY SẢN\",\"species\":\"Cá rô phi, điêu hồng\",\"success\":true,\"variant_code\":\"MK 831\"}",
+        "totalImages": 2
+    }
+}
+```
