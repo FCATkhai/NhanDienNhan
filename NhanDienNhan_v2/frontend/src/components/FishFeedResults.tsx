@@ -1,5 +1,6 @@
-import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, AlertTriangle } from "lucide-react";
 import type { ProductInfo } from "../apis/imageApi";
+import { getFieldWarning, isFieldEmpty } from "../apis/imageApi";
 
 interface FishFeedResultsProps {
   data: ProductInfo;
@@ -7,12 +8,110 @@ interface FishFeedResultsProps {
   onReset: () => void;
 }
 
+interface FieldDisplay {
+  label: string;
+  key: string;
+  icon?: string;
+  value?: any;
+  isEmpty: boolean;
+  warning?: any;
+}
+
 export function FishFeedResults({
   data,
   images,
   onReset,
 }: FishFeedResultsProps) {
-  const confidence = data.confidence_score ? data.confidence_score * 100 : 0;
+  // Use overall_confidence from metadata if available, otherwise use confidence_score
+  const confidenceScore =
+    data.metadata?.overall_confidence ?? data.confidence_score ?? 0;
+  const confidence = confidenceScore * 100;
+
+  // Prepare all fields for display
+  const basicFields: FieldDisplay[] = [
+    {
+      label: "Tên sản phẩm",
+      key: "product_name",
+      icon: "📦",
+      value: data.product_name,
+      isEmpty: isFieldEmpty(data.product_name),
+      warning: getFieldWarning(data, "product_name"),
+    },
+    {
+      label: "Mã biến thể",
+      key: "variant_code",
+      icon: "🏷️",
+      value: data.variant_code,
+      isEmpty: isFieldEmpty(data.variant_code),
+      warning: getFieldWarning(data, "variant_code"),
+    },
+    {
+      label: "Loài cá",
+      key: "species",
+      icon: "🐟",
+      value: data.species,
+      isEmpty: isFieldEmpty(data.species),
+      warning: getFieldWarning(data, "species"),
+    },
+    {
+      label: "Nhà sản xuất",
+      key: "manufacturer",
+      icon: "🏭",
+      value: data.manufacturer,
+      isEmpty: isFieldEmpty(data.manufacturer),
+      warning: getFieldWarning(data, "manufacturer"),
+    },
+    {
+      label: "Loại sản phẩm",
+      key: "product_type",
+      icon: "📋",
+      value: data.product_type,
+      isEmpty: isFieldEmpty(data.product_type),
+      warning: getFieldWarning(data, "product_type"),
+    },
+    {
+      label: "Dung lượng",
+      key: "net_content",
+      icon: "📏",
+      value: data.net_content
+        ? `${data.net_content}${data.net_unit ? ` ${data.net_unit}` : ""}`
+        : null,
+      isEmpty: isFieldEmpty(data.net_content),
+      warning: getFieldWarning(data, "net_content"),
+    },
+    {
+      label: "Hình dạng/Dạng sản phẩm",
+      key: "form_type",
+      icon: "🏷️",
+      value: data.form_type,
+      isEmpty: isFieldEmpty(data.form_type),
+      warning: getFieldWarning(data, "form_type"),
+    },
+    {
+      label: "Ngày sản xuất",
+      key: "mfg_date",
+      icon: "📅",
+      value: data.mfg_date,
+      isEmpty: isFieldEmpty(data.mfg_date),
+      warning: getFieldWarning(data, "mfg_date"),
+    },
+    {
+      label: "Ngày hết hạn",
+      key: "exp_date",
+      icon: "⏰",
+      value: data.exp_date,
+      isEmpty: isFieldEmpty(data.exp_date),
+      warning: getFieldWarning(data, "exp_date"),
+    },
+    {
+      label: "Thành phần",
+      key: "ingredients",
+      icon: "🥣",
+      value: data.ingredients,
+      isEmpty: isFieldEmpty(data.ingredients),
+      warning: getFieldWarning(data, "ingredients"),
+    },
+  ];
 
   if (!data.success) {
     return (
@@ -85,82 +184,58 @@ export function FishFeedResults({
         </div>
       </div>
 
-      {/* Product Header */}
+      {/* Basic Fields - Grid Layout */}
       <div className="border-b-2 border-blue-600 pb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          {data.product_name}
-        </h1>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {data.variant_code && (
-            <div className="bg-blue-50 rounded-lg p-3">
-              <p className="text-xs font-semibold uppercase text-blue-600">
-                Mã biến thể
-              </p>
-              <p className="text-sm font-medium text-gray-900 mt-1">
-                {data.variant_code}
-              </p>
-            </div>
-          )}
-          {data.species && (
-            <div className="bg-blue-50 rounded-lg p-3">
-              <p className="text-xs font-semibold uppercase text-blue-600">
-                Loài cá
-              </p>
-              <p className="text-sm font-medium text-gray-900 mt-1">
-                {data.species}
-              </p>
-            </div>
-          )}
-          {data.manufacturer && (
-            <div className="bg-blue-50 rounded-lg p-3">
-              <p className="text-xs font-semibold uppercase text-blue-600">
-                Nhà sản xuất
-              </p>
-              <p className="text-sm font-medium text-gray-900 mt-1">
-                {data.manufacturer}
-              </p>
-            </div>
-          )}
-          {data.net_content && (
-            <div className="bg-blue-50 rounded-lg p-3">
-              <p className="text-xs font-semibold uppercase text-blue-600">
-                Dung lượng
-              </p>
-              <p className="text-sm font-medium text-gray-900 mt-1">
-                {data.net_content}
-              </p>
-            </div>
-          )}
+        <h2 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b">
+          ℹ️ Thông tin sản phẩm
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {basicFields.map((field) => {
+            const hasWarning = field.warning !== undefined;
+            const isOrange = field.isEmpty || hasWarning;
+
+            return (
+              <div
+                key={field.key}
+                className={`rounded-lg p-3 ${isOrange ? "bg-orange-50 border border-orange-200" : "bg-blue-50 border border-blue-200"}`}
+              >
+                {/* Field Warning */}
+                {hasWarning && (
+                  <div className="mb-2 pb-2 border-b border-orange-200">
+                    <p className="text-xs text-orange-600 font-semibold flex items-center gap-1">
+                      <AlertTriangle className="h-3 w-3" />
+                      {field.warning.issue}
+                    </p>
+                    <p className="text-xs text-orange-600 mt-1">
+                      {field.warning.message}
+                    </p>
+                  </div>
+                )}
+
+                {/* Field Label */}
+                <p
+                  className={`text-xs font-semibold uppercase ${isOrange ? "text-orange-700" : "text-blue-600"}`}
+                >
+                  {field.label}
+                </p>
+
+                {/* Field Value */}
+                <p
+                  className={`text-sm font-medium mt-1 ${
+                    field.isEmpty
+                      ? isOrange
+                        ? "text-orange-500 italic"
+                        : "text-gray-400 italic"
+                      : "text-gray-900"
+                  }`}
+                >
+                  {field.isEmpty ? "Không có dữ liệu" : field.value}
+                </p>
+              </div>
+            );
+          })}
         </div>
       </div>
-
-      {/* Product Type */}
-      {data.product_type && (
-        <div>
-          <h2 className="text-sm font-bold uppercase text-gray-900 mb-3 pb-2 border-b">
-            📦 Loại sản phẩm
-          </h2>
-          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
-            <p className="text-sm font-medium text-gray-900">
-              {data.product_type}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Ingredients */}
-      {data.ingredients && (
-        <div>
-          <h2 className="text-sm font-bold uppercase text-gray-900 mb-3 pb-2 border-b">
-            🥣 Thành phần
-          </h2>
-          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
-            <p className="text-sm text-gray-900 whitespace-pre-wrap">
-              {data.ingredients}
-            </p>
-          </div>
-        </div>
-      )}
 
       {/* Nutrition Facts */}
       {data.nutrition_facts && data.nutrition_facts.length > 0 && (
@@ -168,56 +243,178 @@ export function FishFeedResults({
           <h2 className="text-sm font-bold uppercase text-gray-900 mb-3 pb-2 border-b">
             📊 Thành phần dinh dưỡng
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {data.nutrition_facts.map((fact, index) => (
-              <div
-                key={index}
-                className="bg-green-50 border-l-4 border-green-400 p-3 rounded"
-              >
-                <p className="text-xs font-semibold text-green-700">
-                  {fact.name}
-                </p>
-                <p className="text-sm font-bold text-gray-900 mt-1">
-                  {fact.value}
-                </p>
-              </div>
-            ))}
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-green-100">
+                  <th className="border border-green-300 px-4 py-2 text-left text-xs font-semibold text-green-700">
+                    Chỉ tiêu
+                  </th>
+                  <th className="border border-green-300 px-4 py-2 text-left text-xs font-semibold text-green-700">
+                    Giá trị
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.nutrition_facts.map((fact, index) => (
+                  <tr
+                    key={index}
+                    className={index % 2 === 0 ? "bg-white" : "bg-green-50"}
+                  >
+                    <td className="border border-green-200 px-4 py-2 text-xs font-medium text-gray-900">
+                      {fact.name}
+                    </td>
+                    <td className="border border-green-200 px-4 py-2 text-sm font-bold text-gray-900">
+                      {fact.value + " " + (fact.unit || "")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
+      {!data.nutrition_facts ||
+        (data.nutrition_facts.length === 0 && (
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 text-orange-600 mt-0.5" />
+              <div>
+                <p className="text-xs font-semibold uppercase text-orange-700">
+                  📊 Thành phần dinh dưỡng
+                </p>
+                <p className="text-sm text-orange-700 mt-1">Không có dữ liệu</p>
+              </div>
+            </div>
+          </div>
+        ))}
 
       {/* Feeding Guide */}
       {data.feeding_guide && (
-        <div>
+        <div
+          className={`rounded-lg p-4 ${
+            getFieldWarning(data, "feeding_guide")
+              ? "bg-orange-50 border border-orange-200"
+              : "bg-indigo-50 border-l-4 border-indigo-400"
+          }`}
+        >
           <h2 className="text-sm font-bold uppercase text-gray-900 mb-3 pb-2 border-b">
             🍽️ Hướng dẫn cho ăn
           </h2>
+
+          {/* Feeding Guide Warning */}
+          {getFieldWarning(data, "feeding_guide") && (
+            <div className="mb-3 pb-3 border-b border-orange-200">
+              <p className="text-xs text-orange-600 font-semibold flex items-center gap-1">
+                <AlertTriangle className="h-3 w-3" />
+                {getFieldWarning(data, "feeding_guide")?.issue}
+              </p>
+              <p className="text-xs text-orange-600 mt-1">
+                {getFieldWarning(data, "feeding_guide")?.message}
+              </p>
+            </div>
+          )}
+
           {data.feeding_guide.code && (
             <p className="text-sm font-semibold text-gray-700 mb-3">
               Mã: {data.feeding_guide.code}
             </p>
           )}
-          <div className="grid grid-cols-1 gap-2">
-            {data.feeding_guide.guide &&
-              data.feeding_guide.guide.map((item, index) => (
-                <div
-                  key={index}
-                  className="bg-indigo-50 border-l-4 border-indigo-400 p-3 rounded"
-                >
-                  <p className="text-xs font-semibold text-indigo-700">
-                    {item.name}
-                  </p>
-                  <p className="text-sm font-bold text-gray-900 mt-1">
-                    {item.value}
-                  </p>
-                </div>
-              ))}
+
+          {data.feeding_guide.guide && data.feeding_guide.guide.length > 0 && (
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-indigo-100">
+                    <th className="border border-indigo-300 px-4 py-2 text-left text-xs font-semibold text-indigo-700">
+                      Chỉ tiêu
+                    </th>
+                    <th className="border border-indigo-300 px-4 py-2 text-left text-xs font-semibold text-indigo-700">
+                      Giá trị
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.feeding_guide.guide.map((item, index) => (
+                    <tr
+                      key={index}
+                      className={
+                        index % 2 === 0
+                          ? "bg-white"
+                          : getFieldWarning(data, "feeding_guide")
+                            ? "bg-orange-50"
+                            : "bg-indigo-50"
+                      }
+                    >
+                      <td className="border border-indigo-200 px-4 py-2 text-xs font-medium text-gray-900">
+                        {item.name}
+                      </td>
+                      <td className="border border-indigo-200 px-4 py-2 text-sm font-bold text-gray-900">
+                        {item.value}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+      {!data.feeding_guide && (
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="h-4 w-4 text-orange-600 mt-0.5" />
+            <div>
+              <p className="text-xs font-semibold uppercase text-orange-700">
+                🍽️ Hướng dẫn cho ăn
+              </p>
+              <p className="text-sm text-orange-700 mt-1">Không có dữ liệu</p>
+            </div>
           </div>
         </div>
       )}
 
+      {/* Quality Warnings Summary */}
+      {data.metadata?.review_warnings &&
+        data.metadata.review_warnings.length > 0 && (
+          <div>
+            <h2 className="text-sm font-bold uppercase text-gray-900 mb-3 pb-2 border-b flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-amber-600" />
+              Tóm tắt cảnh báo chất lượng
+            </h2>
+            <div className="space-y-2">
+              {data.metadata.review_warnings.map((warning, index) => (
+                <div
+                  key={index}
+                  className="bg-amber-50 border-l-4 border-amber-400 p-3 rounded"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <p className="text-xs font-semibold text-amber-700">
+                        {warning.field_path}
+                      </p>
+                      <p className="text-xs text-amber-600 mt-1">
+                        {warning.issue}
+                      </p>
+                      <p className="text-sm text-gray-700 mt-1">
+                        {warning.message}
+                      </p>
+                    </div>
+                    {warning.confidence !== undefined && (
+                      <span className="ml-3 text-xs font-bold text-amber-700">
+                        {(warning.confidence * 100).toFixed(0)}%
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
       {/* Confidence Score */}
-      {data.confidence_score !== undefined && (
+      {(data.metadata?.overall_confidence !== undefined ||
+        data.confidence_score !== undefined) && (
         <div className="flex items-center gap-2 pt-4 border-t">
           <CheckCircle2
             className={`h-5 w-5 ${confidence >= 80 ? "text-green-600" : "text-amber-600"}`}

@@ -2,8 +2,8 @@ import OpenAI from "openai";
 import dotenv from "dotenv";
 import { zodTextFormat } from "openai/helpers/zod";
 import {
-  FishFeedSchema,
-  PesticideSchema,
+  FishFeedResponseSchema,
+  PesticideResponseSchema,
 } from "@backend/validation/productInfo";
 
 dotenv.config();
@@ -57,7 +57,9 @@ export const processImagesWithOpenAI = async (
       ],
       text: {
         format: zodTextFormat(
-          schemaType === "fish_feed" ? FishFeedSchema : PesticideSchema,
+          schemaType === "fish_feed"
+            ? FishFeedResponseSchema
+            : PesticideResponseSchema,
           "schema",
         ),
       },

@@ -7,11 +7,28 @@ const API_BASE_URL =
 
 export type ProductCategory = "pesticide" | "fish_feed";
 
+export interface ReviewWarning {
+  confidence?: number;
+  field_path: string;
+  issue: string;
+  message: string;
+}
+
+export interface ResponseMetadata {
+  overall_confidence?: number;
+  review_warnings?: ReviewWarning[];
+}
+
 export interface ProductInfo {
   success: boolean;
   category?: ProductCategory;
   message?: string;
   error_code?: string;
+  metadata?: ResponseMetadata;
+  mfg_date?: string;
+  exp_date?: string;
+  form_type?: string;
+  net_unit?: string;
   // Pesticide fields
   product_name?: string;
   product_type?: string;
@@ -27,7 +44,7 @@ export interface ProductInfo {
   species?: string;
   net_content?: string;
   ingredients?: string;
-  nutrition_facts?: Array<{ name: string; value: string }>;
+  nutrition_facts?: Array<{ name: string; value: string; unit?: string }>;
   feeding_guide?: {
     code?: string;
     guide?: Array<{ name: string; value: string }>;
@@ -58,6 +75,7 @@ export interface MultipleImagesResponse {
 
 /**
  * Parse product info from API response
+ * The response.data.response is a JSON string containing the actual product info
  */
 export const parseProductInfo = (
   response: ImageAnalysisResponse | MultipleImagesResponse,
@@ -72,7 +90,21 @@ export const parseProductInfo = (
       };
     }
 
-    const productInfo = JSON.parse(response.data.response) as ProductInfo;
+    // Parse the response string to get the actual data object
+    const parsedResponse = JSON.parse(response.data.response);
+
+    // The response contains a 'data' field with product info, and metadata
+    const productData = parsedResponse.data || parsedResponse;
+
+    // Combine data and metadata into ProductInfo
+    const productInfo: ProductInfo = {
+      success: parsedResponse.success,
+      error_code: parsedResponse.error_code,
+      message: parsedResponse.message,
+      metadata: parsedResponse.metadata,
+      ...productData,
+    };
+
     return productInfo;
   } catch (error) {
     return {
@@ -81,6 +113,29 @@ export const parseProductInfo = (
       error_code: "PARSE_ERROR",
     };
   }
+};
+
+/**
+ * Get warning for a specific field
+ */
+export const getFieldWarning = (
+  productInfo: ProductInfo,
+  fieldPath: string,
+): ReviewWarning | undefined => {
+  return productInfo.metadata?.review_warnings?.find(
+    (w) => w.field_path === fieldPath,
+  );
+};
+
+/**
+ * Check if a field is empty or has a warning
+ */
+export const isFieldEmpty = (value: any): boolean => {
+  if (value === null || value === undefined) return true;
+  if (typeof value === "string" && value.trim() === "") return true;
+  if (Array.isArray(value) && value.length === 0) return true;
+  if (typeof value === "object" && Object.keys(value).length === 0) return true;
+  return false;
 };
 
 /**

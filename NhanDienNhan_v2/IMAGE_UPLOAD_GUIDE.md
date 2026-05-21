@@ -46,11 +46,16 @@ Used for analyzing agricultural pesticide, fungicide, herbicide, and other chemi
 - `product_type` - Type (Insecticide, Fungicide, Herbicide, etc.)
 - `manufacturer` - Manufacturing company
 - `registration_number` - Official registration/approval number
+- `form_type` - Product form (powder, liquid, granules, etc.)
+- `net_content` - Package size
+- `net_unit` - Unit of measurement (g, kg, ml, l, etc.)
 - `active_ingredients` - List of active ingredients with percentages
 - `dosage` - Recommended dosage and application instructions
 - `target_crops` - Crops the product is used on
 - `target_pests` - Pests/diseases the product targets
 - `pre_harvest_interval_days` - Days to wait before harvest after application
+- `mfg_date` - Manufacturing date
+- `exp_date` - Expiration date
 - `confidence_score` - Extraction confidence (0-1)
 
 ### Fish Feed Category (`category=fish_feed`)
@@ -62,10 +67,14 @@ Used for analyzing aquaculture feed products and specifications.
 - `species` - Fish species the feed is for
 - `manufacturer` - Manufacturing company
 - `product_type` - Feed type classification
+- `form_type` - Product form
 - `net_content` - Package size/weight
+- `net_unit` - Unit of measurement (kg, g, etc.)
 - `ingredients` - Ingredient list
 - `nutrition_facts` - Nutritional composition (protein, fat, fiber, minerals, etc.)
 - `feeding_guide` - Feeding instructions by fish size/weight
+- `mfg_date` - Manufacturing date
+- `exp_date` - Expiration date
 - `confidence_score` - Extraction confidence (0-1)
 
 ### Backend Endpoints
@@ -93,24 +102,43 @@ Fields:
 **Response (Pesticide - Success):**
 ```json
 {
-  "success": true,
-  "data": {
-    "response": "{\"success\":true,\"error_code\":\"NONE\",\"message\":\"Product information extracted successfully\",\"product_name\":\"Ridomil Gold 68 WG\",\"manufacturer\":\"Syngenta\",\"product_type\":\"Fungicide\",\"registration_number\":\"VN12345\",\"active_ingredients\":[{\"name\":\"Mancozeb\",\"content\":\"80%\"},{\"name\":\"Metalaxyl\",\"content\":\"8%\"}],\"dosage\":\"2.5kg/1000L water\",\"target_crops\":[\"Potato\",\"Grape\",\"Tomato\"],\"target_pests\":[\"Late Blight\",\"Downy Mildew\"],\"pre_harvest_interval_days\":7,\"expiry_date\":null,\"confidence_score\":0.95}",
-    "totalImages": 1
-  }
+    "success": true,
+    "data": {
+        "response": "{\"data\":{\"active_ingredients\":[{\"content\":\"40 g/kg\",\"name\":\"Metalaxyl\"},{\"content\":\"640 g/kg\",\"name\":\"Mancozeb\"},{\"content\":\"320 g/kg\",\"name\":\"Phụ gia\"}],\"category\":\"pesticide\",\"dosage\":null,\"exp_date\":null,\"form_type\":\"bot\",\"manufacturer\":\"Công ty TNHH Syngenta Việt Nam\",\"mfg_date\":null,\"net_content\":\"100\",\"net_unit\":\"g\",\"pre_harvest_interval_days\":14,\"product_name\":\"Ridomil Gold 68 WG\",\"product_type\":\"Thuốc trừ bệnh\",\"registration_number\":null,\"target_crops\":[\"lúa\",\"lạc\"],\"target_pests\":[\"bệnh phấn trắng lúa, bện s rầy nâu, bệnh lem lép hạt, bệnh đạo ôn lá và cổ bông\"]},\"error_code\":\"NONE\",\"message\":\"Trích xuất thông tin sản phẩm thuốc bảo vệ thực vật thành công.\",\"metadata\":{\"overall_confidence\":0.9,\"review_warnings\":[{\"field\":\"dosage\",\"issue\":\"BLURRY_TEXT\",\"message\":\"Không thể đọc rõ liều lượng sử dụng do chữ nhỏ và bị chói sáng.\"}]},\"success\":true}",
+        "totalImages": 2
+    }
 }
 ```
 
 **Response (Fish Feed - Success):**
 ```json
 {
-  "success": true,
-  "data": {
-    "response": "{\"success\":true,\"error_code\":\"NONE\",\"category\":\"fish_feed\",\"message\":\"Product information extracted successfully\",\"product_name\":\"THỨC ĂN HỖN HỢP CHO CÁ RÔ PHI MK 831\",\"variant_code\":\"MK 831\",\"manufacturer\":\"CTY TNHH MTV THỨC ĂN THỦY SẢN MEKONG\",\"product_type\":\"THỨC ĂN THỦY SẢN\",\"net_content\":\"25Kg\",\"species\":\"Cá rô phi, điêu hồng\",\"ingredients\":\"Bột cá cao cấp, bột đậu nành, bột mì, cám gạo...\",\"nutrition_facts\":[{\"name\":\"Protein tối thiểu (%)\",\"value\":\"31\"},{\"name\":\"Béo thô tối đa (%)\",\"value\":\"6\"}],\"feeding_guide\":{\"code\":\"MK 831\",\"guide\":[{\"name\":\"Khối lượng cá (g/con)\",\"value\":\"10 - 200\"},{\"name\":\"Tỷ lệ (%) so với khối lượng đàn cá\",\"value\":\"4 - 6\"}]},\"confidence_score\":0.92}",
-    "totalImages": 1
-  }
+    "success": true,
+    "data": {
+        "response": "{\"data\":{\"category\":\"fish_feed\",\"exp_date\":null,\"feeding_guide\":{\"code\":\"MK 831\",\"guide\":[{\"name\":\"Khối lượng cá (g/con)\",\"value\":\"10 - 100\"},{\"name\":\"Tỷ lệ (%) so với khối lượng đàn cá\",\"value\":\"4 - 6\"},{\"name\":\"Số lần cho ăn /ngày\",\"value\":\"3 - 4\"}]},\"form_type\":null,\"ingredients\":\"Bột cá cao cấp, bột đậu nành, bột mì, cám gạo, chất dẫn dụ, Vitamin và khoáng, ...\",\"manufacturer\":\"CTY TNHH MTV THỨC ĂN THỦY SẢN MEKONG\",\"mfg_date\":null,\"net_content\":\"25\",\"net_unit\":\"Kg\",\"nutrition_facts\":[{\"name\":\"Độ ẩm (%) max\",\"unit\":null,\"value\":\"11\"},{\"name\":\"Protein thô (%) min\",\"unit\":null,\"value\":\"31\"},{\"name\":\"Béo thô (%) min\",\"unit\":null,\"value\":\"6\"},{\"name\":\"Xơ thô (%) max\",\"unit\":null,\"value\":\"5\"},{\"name\":\"Ca (%) min\",\"unit\":null,\"value\":\"1.3\"},{\"name\":\"P tổng số (%) min\",\"unit\":null,\"value\":\"1.0\"},{\"name\":\"Lysine tổng số (%) min\",\"unit\":null,\"value\":\"1.8\"},{\"name\":\"Ethoxy quin (ppm)\",\"unit\":null,\"value\":\"< 150\"}],\"product_name\":\"THỨC ĂN THỦY SẢN MEKONG MK 831\",\"product_type\":\"Thức ăn hỗn hợp cho cá rô phi, điêu hồng\",\"species\":null,\"variant_code\":\"MK 831\"},\"error_code\":\"NONE\",\"message\":\"Trích xuất thông tin sản phẩm thức ăn thủy sản MEKONG MK 831 thành công\",\"metadata\":{\"overall_confidence\":0.95,\"review_warnings\":[]},\"success\":true}",
+        "totalImages": 2
+    }
 }
 ```
+
+**Response (Success with Warnings):**
+```json
+{
+    "success": true,
+    "data": {
+        "response": "{\"data\":{\"category\":\"fish_feed\",\"exp_date\":null,\"feeding_guide\":{\"code\":\"MK 831\",\"guide\":[{\"name\":\"Tỷ lệ (%) so với khối lượng dân Cá\",\"value\":\"3 - 4\"},{\"name\":\"Số lần cho ăn /ngày\",\"value\":\"3\"}]},\"form_type\":null,\"ingredients\":\"Bột cá cao cấp, bột đậu nành, bột mì, cám gạo, chất dẫn dụ, Vitamin và khoáng, ...\",\"manufacturer\":\"CTY TNHH MTV THỨC ĂN THỦY SẢN MEKONG\",\"mfg_date\":null,\"net_content\":\"25\",\"net_unit\":\"Kg\",\"nutrition_facts\":null,\"product_name\":\"MK 831\",\"product_type\":null,\"species\":\"cá rô phi, điêu hồng\",\"variant_code\":\"MK 831\"},\"error_code\":\"NONE\",\"message\":\"Trích xuất thông tin thành công.\",\"metadata\":{\"overall_confidence\":0.85,\"review_warnings\":[{\"confidence\":0.8,\"field_path\":\"feeding_guide\",\"issue\":\"OBSCURED_DATA\",\"message\":\"Hướng dẫn cho ăn phần mã MK 831 bị bôi xóa/mỏi mực, không thể đọc rõ ràng thông tin tài liệu chi tiết.\"},{\"confidence\":0.8,\"field_path\":\"nutrition_facts\",\"issue\":\"OBSCURED_DATA\",\"message\":\"Bảng thành phần dinh dưỡng bị gạch chéo nên không thể trích xuất dữ liệu chính xác.\"}]},\"success\":true}",
+        "totalImages": 2
+    }
+}
+```
+
+**Warnings Structure:** When extraction succeeds but with quality concerns, the response includes `metadata` with:
+- `overall_confidence` - Overall extraction confidence (0-1)
+- `review_warnings` - Array of warning objects with:
+  - `confidence` - Confidence level for that specific field (0-1)
+  - `field_path` - Path to the field with quality issues
+  - `issue` - Type of issue (e.g., `OBSCURED_DATA`, `BLURRY_TEXT`)
+  - `message` - Description of the quality issue
 
 **Response (Error - Extraction Failure):**
 ```json
@@ -125,8 +153,8 @@ Fields:
 
 **Note:** The `response` field contains product information as a JSON string that needs to be parsed on the client side. The LLM returns a structured object with status fields (`success`, `error_code`, `message`) and product data fields. The structure varies based on category:
 
-- **Pesticide Category** (default): Returns fields like `product_name`, `manufacturer`, `product_type`, `active_ingredients`, `dosage`, `target_crops`, `target_pests`, `registration_number`, `pre_harvest_interval_days`
-- **Fish Feed Category**: Returns fields like `product_name`, `variant_code`, `species`, `feeding_guide`, `nutrition_facts`, `net_content`, `ingredients`
+- **Pesticide Category** (default): Returns fields like `product_name`, `manufacturer`, `product_type`, `form_type`, `net_content`, `net_unit`, `active_ingredients`, `dosage`, `target_crops`, `target_pests`, `registration_number`, `pre_harvest_interval_days`, `mfg_date`, `exp_date`
+- **Fish Feed Category**: Returns fields like `product_name`, `variant_code`, `species`, `manufacturer`, `product_type`, `form_type`, `net_content`, `net_unit`, `feeding_guide`, `nutrition_facts`, `ingredients`, `mfg_date`, `exp_date`
 
 ## Frontend Setup
 
@@ -319,12 +347,19 @@ When the LLM cannot extract product information, it returns a 200 response with:
 ```
 
 ### Error Codes
-- `NONE` - No error, extraction successful
+- `NONE` - No error, extraction successful (may include warnings)
 - `BLURRY_IMAGE` - Image quality too poor to read
 - `NOT_A_PRODUCT` - Image doesn't contain a product label
 - `TEXT_NOT_READABLE` - Text on label cannot be read clearly
 - `MISSING_LABEL` - Product doesn't have a visible label
 - `UNKNOWN` - Unknown error during extraction
+
+### Warning Issue Types
+- `BLURRY_TEXT` - Text is blurry or difficult to read
+- `OBSCURED_DATA` - Data is partially obscured or crossed out
+- `LOW_CONTRAST` - Poor contrast makes text hard to read
+- `PARTIAL_LABEL` - Label is cut off or partially visible
+- `MULTIPLE_PRODUCTS` - Multiple products visible, uncertain which to extract
 
 ## Testing with cURL
 
@@ -393,6 +428,5 @@ OpenAI Vision Model
 Backend Response → Frontend
     ├─ Parse JSON response string
     ├─ Display category-specific fields to user
-    └─ Show confidence score and status
+    └─ Show confidence score and warning messages (if any)
 ```
-

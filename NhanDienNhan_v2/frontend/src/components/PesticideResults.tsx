@@ -1,5 +1,6 @@
-import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, AlertTriangle } from "lucide-react";
 import type { ProductInfo } from "../apis/imageApi";
+import { getFieldWarning, isFieldEmpty } from "../apis/imageApi";
 
 interface PesticideResultsProps {
   data: ProductInfo;
@@ -7,12 +8,24 @@ interface PesticideResultsProps {
   onReset: () => void;
 }
 
+interface FieldDisplay {
+  label: string;
+  key: string;
+  icon?: string;
+  value?: any;
+  isEmpty: boolean;
+  warning?: any;
+}
+
 export function PesticideResults({
   data,
   images,
   onReset,
 }: PesticideResultsProps) {
-  const confidence = data.confidence_score ? data.confidence_score * 100 : 0;
+  // Use overall_confidence from metadata if available, otherwise use confidence_score
+  const confidenceScore =
+    data.metadata?.overall_confidence ?? data.confidence_score ?? 0;
+  const confidence = confidenceScore * 100;
 
   if (!data.success) {
     return (
@@ -62,6 +75,94 @@ export function PesticideResults({
     );
   }
 
+  // Prepare all fields for display
+  const basicFields: FieldDisplay[] = [
+    {
+      label: "Tên sản phẩm",
+      key: "product_name",
+      icon: "📦",
+      value: data.product_name,
+      isEmpty: isFieldEmpty(data.product_name),
+      warning: getFieldWarning(data, "product_name"),
+    },
+    {
+      label: "Loại",
+      key: "product_type",
+      icon: "📋",
+      value: data.product_type,
+      isEmpty: isFieldEmpty(data.product_type),
+      warning: getFieldWarning(data, "product_type"),
+    },
+    {
+      label: "Nhà sản xuất",
+      key: "manufacturer",
+      icon: "🏭",
+      value: data.manufacturer,
+      isEmpty: isFieldEmpty(data.manufacturer),
+      warning: getFieldWarning(data, "manufacturer"),
+    },
+    {
+      label: "Số đăng ký",
+      key: "registration_number",
+      icon: "📜",
+      value: data.registration_number,
+      isEmpty: isFieldEmpty(data.registration_number),
+      warning: getFieldWarning(data, "registration_number"),
+    },
+    {
+      label: "Dung lượng",
+      key: "net_content",
+      icon: "📏",
+      value: data.net_content
+        ? `${data.net_content}${data.net_unit ? ` ${data.net_unit}` : ""}`
+        : null,
+      isEmpty: isFieldEmpty(data.net_content),
+      warning: getFieldWarning(data, "net_content"),
+    },
+    {
+      label: "Hình dạng/Dạng sản phẩm",
+      key: "form_type",
+      icon: "🏷️",
+      value: data.form_type,
+      isEmpty: isFieldEmpty(data.form_type),
+      warning: getFieldWarning(data, "form_type"),
+    },
+    {
+      label: "Ngày sản xuất",
+      key: "mfg_date",
+      icon: "📅",
+      value: data.mfg_date,
+      isEmpty: isFieldEmpty(data.mfg_date),
+      warning: getFieldWarning(data, "mfg_date"),
+    },
+    {
+      label: "Ngày hết hạn",
+      key: "exp_date",
+      icon: "⏰",
+      value: data.exp_date,
+      isEmpty: isFieldEmpty(data.exp_date),
+      warning: getFieldWarning(data, "exp_date"),
+    },
+    {
+      label: "Cách sử dụng & Liều lượng",
+      key: "dosage",
+      icon: "💊",
+      value: data.dosage,
+      isEmpty: isFieldEmpty(data.dosage),
+      warning: getFieldWarning(data, "dosage"),
+    },
+    {
+      label: "Thời gian cách ly trước thu hoạch",
+      key: "pre_harvest_interval_days",
+      icon: "⏱️",
+      value: data.pre_harvest_interval_days
+        ? `${data.pre_harvest_interval_days} ngày`
+        : null,
+      isEmpty: isFieldEmpty(data.pre_harvest_interval_days),
+      warning: getFieldWarning(data, "pre_harvest_interval_days"),
+    },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Images Section */}
@@ -85,42 +186,56 @@ export function PesticideResults({
         </div>
       </div>
 
-      {/* Product Header */}
+      {/* Basic Fields - Grid Layout */}
       <div className="border-b-2 border-purple-600 pb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          {data.product_name}
-        </h1>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {data.product_type && (
-            <div className="bg-blue-50 rounded-lg p-3">
-              <p className="text-xs font-semibold uppercase text-purple-600">
-                Loại
-              </p>
-              <p className="text-sm font-medium text-gray-900 mt-1">
-                {data.product_type}
-              </p>
-            </div>
-          )}
-          {data.manufacturer && (
-            <div className="bg-blue-50 rounded-lg p-3">
-              <p className="text-xs font-semibold uppercase text-purple-600">
-                Nhà sản xuất
-              </p>
-              <p className="text-sm font-medium text-gray-900 mt-1">
-                {data.manufacturer}
-              </p>
-            </div>
-          )}
-          {data.registration_number && (
-            <div className="bg-blue-50 rounded-lg p-3">
-              <p className="text-xs font-semibold uppercase text-purple-600">
-                Số đăng ký
-              </p>
-              <p className="text-sm font-medium text-gray-900 mt-1">
-                {data.registration_number}
-              </p>
-            </div>
-          )}
+        <h2 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b">
+          ℹ️ Thông tin sản phẩm
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {basicFields.map((field) => {
+            const hasWarning = field.warning !== undefined;
+            const isOrange = field.isEmpty || hasWarning;
+
+            return (
+              <div
+                key={field.key}
+                className={`rounded-lg p-3 ${isOrange ? "bg-orange-50 border border-orange-200" : "bg-blue-50 border border-blue-200"}`}
+              >
+                {/* Field Warning */}
+                {hasWarning && (
+                  <div className="mb-2 pb-2 border-b border-orange-200">
+                    <p className="text-xs text-orange-600 font-semibold flex items-center gap-1">
+                      <AlertTriangle className="h-3 w-3" />
+                      {field.warning.issue}
+                    </p>
+                    <p className="text-xs text-orange-600 mt-1">
+                      {field.warning.message}
+                    </p>
+                  </div>
+                )}
+
+                {/* Field Label */}
+                <p
+                  className={`text-xs font-semibold uppercase ${isOrange ? "text-orange-700" : "text-purple-600"}`}
+                >
+                  {field.label}
+                </p>
+
+                {/* Field Value */}
+                <p
+                  className={`text-sm font-medium mt-1 ${
+                    field.isEmpty
+                      ? isOrange
+                        ? "text-orange-500 italic"
+                        : "text-gray-400 italic"
+                      : "text-gray-900"
+                  }`}
+                >
+                  {field.isEmpty ? "Không có dữ liệu" : field.value}
+                </p>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -130,35 +245,51 @@ export function PesticideResults({
           <h2 className="text-sm font-bold uppercase text-gray-900 mb-3 pb-2 border-b">
             🧪 Thành phần hoạt chất
           </h2>
-          <div className="grid grid-cols-1 gap-3">
-            {data.active_ingredients.map((ingredient, index) => (
-              <div
-                key={index}
-                className="bg-orange-50 border-l-4 border-orange-400 p-4 rounded"
-              >
-                <p className="font-semibold text-gray-900">{ingredient.name}</p>
-                <p className="text-sm text-gray-600 mt-1">
-                  {ingredient.content}
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-orange-100">
+                  <th className="border border-orange-300 px-4 py-2 text-left text-xs font-semibold text-orange-700">
+                    Hoạt chất
+                  </th>
+                  <th className="border border-orange-300 px-4 py-2 text-left text-xs font-semibold text-orange-700">
+                    Hàm lượng
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.active_ingredients.map((ingredient, index) => (
+                  <tr
+                    key={index}
+                    className={index % 2 === 0 ? "bg-white" : "bg-orange-50"}
+                  >
+                    <td className="border border-orange-200 px-4 py-2 text-xs font-medium text-gray-900">
+                      {ingredient.name}
+                    </td>
+                    <td className="border border-orange-200 px-4 py-2 text-sm font-bold text-gray-900">
+                      {ingredient.content}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+      {!data.active_ingredients ||
+        (data.active_ingredients.length === 0 && (
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 text-orange-600 mt-0.5" />
+              <div>
+                <p className="text-xs font-semibold uppercase text-orange-700">
+                  🧪 Thành phần hoạt chất
                 </p>
+                <p className="text-sm text-orange-700 mt-1">Không có dữ liệu</p>
               </div>
-            ))}
+            </div>
           </div>
-        </div>
-      )}
-
-      {/* Dosage */}
-      {data.dosage && (
-        <div>
-          <h2 className="text-sm font-bold uppercase text-gray-900 mb-3 pb-2 border-b">
-            📋 Cách sử dụng & Liều lượng
-          </h2>
-          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
-            <p className="text-sm text-gray-900 whitespace-pre-wrap">
-              {data.dosage}
-            </p>
-          </div>
-        </div>
-      )}
+        ))}
 
       {/* Target Crops */}
       {data.target_crops && data.target_crops.length > 0 && (
@@ -178,6 +309,20 @@ export function PesticideResults({
           </div>
         </div>
       )}
+      {!data.target_crops ||
+        (data.target_crops.length === 0 && (
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 text-orange-600 mt-0.5" />
+              <div>
+                <p className="text-xs font-semibold uppercase text-orange-700">
+                  🌱 Cây trồng
+                </p>
+                <p className="text-sm text-orange-700 mt-1">Không có dữ liệu</p>
+              </div>
+            </div>
+          </div>
+        ))}
 
       {/* Target Pests */}
       {data.target_pests && data.target_pests.length > 0 && (
@@ -197,23 +342,62 @@ export function PesticideResults({
           </div>
         </div>
       )}
-
-      {/* Pre-harvest Interval */}
-      {data.pre_harvest_interval_days && (
-        <div>
-          <h2 className="text-sm font-bold uppercase text-gray-900 mb-3 pb-2 border-b">
-            ⏰ Thời gian cách ly trước thu hoạch
-          </h2>
-          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
-            <p className="text-lg font-semibold text-gray-900">
-              {data.pre_harvest_interval_days} ngày
-            </p>
+      {!data.target_pests ||
+        (data.target_pests.length === 0 && (
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 text-orange-600 mt-0.5" />
+              <div>
+                <p className="text-xs font-semibold uppercase text-orange-700">
+                  🐛 Sâu bệnh mục tiêu
+                </p>
+                <p className="text-sm text-orange-700 mt-1">Không có dữ liệu</p>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        ))}
+
+      {/* Quality Warnings Summary */}
+      {data.metadata?.review_warnings &&
+        data.metadata.review_warnings.length > 0 && (
+          <div>
+            <h2 className="text-sm font-bold uppercase text-gray-900 mb-3 pb-2 border-b flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-amber-600" />
+              Tóm tắt cảnh báo chất lượng
+            </h2>
+            <div className="space-y-2">
+              {data.metadata.review_warnings.map((warning, index) => (
+                <div
+                  key={index}
+                  className="bg-amber-50 border-l-4 border-amber-400 p-3 rounded"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <p className="text-xs font-semibold text-amber-700">
+                        {warning.field_path}
+                      </p>
+                      <p className="text-xs text-amber-600 mt-1">
+                        {warning.issue}
+                      </p>
+                      <p className="text-sm text-gray-700 mt-1">
+                        {warning.message}
+                      </p>
+                    </div>
+                    {warning.confidence !== undefined && (
+                      <span className="ml-3 text-xs font-bold text-amber-700">
+                        {(warning.confidence * 100).toFixed(0)}%
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
       {/* Confidence Score */}
-      {data.confidence_score !== undefined && (
+      {(data.metadata?.overall_confidence !== undefined ||
+        data.confidence_score !== undefined) && (
         <div className="flex items-center gap-2 pt-4 border-t">
           <CheckCircle2
             className={`h-5 w-5 ${confidence >= 80 ? "text-green-600" : "text-amber-600"}`}
