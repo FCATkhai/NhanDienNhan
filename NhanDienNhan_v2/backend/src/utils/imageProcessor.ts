@@ -72,7 +72,8 @@ export const processImagesWithOpenAI = async (
 
     return {
       success: true,
-      response: JSON.parse(response.output_text),
+      //   response: JSON.parse(response.output_text),
+      response: response.output_text,
     };
   } catch (error) {
     console.error("OpenAI API Error:", error);

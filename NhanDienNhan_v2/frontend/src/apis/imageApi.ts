@@ -91,8 +91,13 @@ export const parseProductInfo = (
       };
     }
 
-    // Parse the response string to get the actual data object
-    const parsedResponse = JSON.parse(response.data.response);
+    // Handle both string and object responses
+    let parsedResponse: any;
+    if (typeof response.data.response === "string") {
+      parsedResponse = JSON.parse(response.data.response);
+    } else {
+      parsedResponse = response.data.response;
+    }
 
     // The response contains a 'data' field with product info, and metadata
     const productData = parsedResponse.data || parsedResponse;
