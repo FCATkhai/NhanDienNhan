@@ -1,0 +1,31 @@
+{
+    "success": true,
+    "data": {
+        "response": {
+            "success": true,
+            "error_code": "NONE",
+            "message": "Trích xuất thông tin sản phẩm thành công.",
+            "metadata": {
+                "overall_confidence": 0.95,
+                "review_warnings": []
+            },
+            "data": {
+                "category": "Thức ăn hỗn hợp cho cá giống",
+                "form_type": null,
+                "manufacturer": "Công ty TNHH Uni-President Việt Nam",
+                "product_name": "THỨC ĂN HỖN HỢP CHO CÁ GIỐNG FINGERLINGS FEED",
+                "net_content": "10",
+                "net_unit": "kg",
+                "mfg_date": null,
+                "exp_date": null,
+                "product_type": "Thức ăn hỗn hợp cho cá giống",
+                "species": "Cá giống",
+                "ingredients": "Bột cá, bột đậu nành, bột mì, dầu cá, vitamin và khoáng chất.",
+                "variant_code": null,
+                "nutrition_facts": null,
+                "feeding_guide": null
+            }
+        },
+        "totalImages": 2
+    }
+}

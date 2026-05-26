@@ -1,0 +1,96 @@
+{
+    "success": true,
+    "data": {
+        "response": {
+            "data": {
+                "category": "fish_feed",
+                "exp_date": null,
+                "feeding_guide": {
+                    "code": "D001",
+                    "guide": [
+                        {
+                            "name": "Hình dạng",
+                            "value": "MẢNH"
+                        },
+                        {
+                            "name": "Kích cỡ thức ăn (mm)",
+                            "value": "18 - 40"
+                        },
+                        {
+                            "name": "Khối lượng cơ thể (g)",
+                            "value": "1 - 3"
+                        },
+                        {
+                            "name": "Tỷ lệ cho ăn (%)",
+                            "value": "8 - 10"
+                        },
+                        {
+                            "name": "Số lần cho ăn/ngày",
+                            "value": "5 - 6"
+                        }
+                    ]
+                },
+                "form_type": "bot",
+                "ingredients": "Bột cá, Bột đậu nành, Bột mì, Dầu cá, Vitamin và Khoáng chất.",
+                "manufacturer": "Công ty TNHH Uni-President Việt Nam",
+                "mfg_date": null,
+                "net_content": "10",
+                "net_unit": "kg",
+                "nutrition_facts": [
+                    {
+                        "name": "Độ ẩm tối đa",
+                        "unit": "%",
+                        "value": "11"
+                    },
+                    {
+                        "name": "Protein thô tối thiểu",
+                        "unit": "%",
+                        "value": "40"
+                    },
+                    {
+                        "name": "Béo thô tối thiểu",
+                        "unit": "%",
+                        "value": "6"
+                    },
+                    {
+                        "name": "Xơ thô tối đa",
+                        "unit": "%",
+                        "value": "6"
+                    },
+                    {
+                        "name": "Phốt pho tổng tối thiểu",
+                        "unit": "%",
+                        "value": "0.5"
+                    },
+                    {
+                        "name": "Lysine tổng tối thiểu",
+                        "unit": "%",
+                        "value": "1.8"
+                    },
+                    {
+                        "name": "Ethoxyquin tối đa",
+                        "unit": "mg/kg",
+                        "value": "150"
+                    },
+                    {
+                        "name": "BHA + BHT tối đa",
+                        "unit": "mg/kg",
+                        "value": "300"
+                    }
+                ],
+                "product_name": "Thức ăn hỗn hợp cho cá giống",
+                "product_type": "Thức ăn thủy sản",
+                "species": "Cá giống",
+                "variant_code": "D001"
+            },
+            "error_code": "NONE",
+            "message": "Trích xuất thành công.",
+            "metadata": {
+                "overall_confidence": 0.98,
+                "review_warnings": []
+            },
+            "success": true
+        },
+        "totalImages": 2
+    }
+}

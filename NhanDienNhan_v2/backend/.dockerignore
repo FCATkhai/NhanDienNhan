@@ -1,5 +1,6 @@
 node_modules
 dist
+speed test
 npm-debug.log
 .env
 .env.local

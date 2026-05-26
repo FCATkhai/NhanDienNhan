@@ -1,0 +1,96 @@
+{
+    "success": true,
+    "data": {
+        "response": {
+            "message": "Trích xuất thành công thông tin sản phẩm.",
+            "metadata": {
+                "overall_confidence": 0.98,
+                "review_warnings": []
+            },
+            "success": true,
+            "data": {
+                "feeding_guide": {
+                    "code": "D002",
+                    "guide": [
+                        {
+                            "name": "Hình dạng",
+                            "value": "VIÊN (Pellet)"
+                        },
+                        {
+                            "name": "Kích cỡ thức ăn (mm)",
+                            "value": "1.4 - 1.7"
+                        },
+                        {
+                            "name": "Khối lượng cá thể (g)",
+                            "value": "1.4 - 7"
+                        },
+                        {
+                            "name": "Tỉ lệ cho ăn (% trọng lượng thân cá)",
+                            "value": "5 - 6"
+                        },
+                        {
+                            "name": "Số lần cho ăn/ngày",
+                            "value": "5 - 6"
+                        }
+                    ]
+                },
+                "form_type": "vien",
+                "ingredients": "Bột cá, Bột đậu nành, Bột mì, Dầu cá, Vitamin và Khoáng chất. Fish meal, Soybean meal, Wheat flour, Fish oil, Vitamins and Minerals.",
+                "manufacturer": "CÔNG TY TNHH UNI-PRESIDENT VIỆT NAM",
+                "mfg_date": null,
+                "net_unit": "kg",
+                "product_name": "Thức ăn hỗn hợp cho cá giống Uni-President D002",
+                "product_type": "Thức ăn hỗn hợp cá giống",
+                "category": "fish_feed",
+                "exp_date": null,
+                "net_content": "10",
+                "nutrition_facts": [
+                    {
+                        "name": "Độ ẩm tối đa",
+                        "unit": "%",
+                        "value": "11"
+                    },
+                    {
+                        "name": "Protein thô tối thiểu",
+                        "unit": "%",
+                        "value": "40"
+                    },
+                    {
+                        "name": "Béo thô tối thiểu",
+                        "unit": "%",
+                        "value": "4"
+                    },
+                    {
+                        "name": "Xơ thô tối đa",
+                        "unit": "%",
+                        "value": "6"
+                    },
+                    {
+                        "name": "Photpho tổng tối thiểu",
+                        "unit": "%",
+                        "value": "0.5"
+                    },
+                    {
+                        "name": "Lysine tổng tối thiểu",
+                        "unit": "%",
+                        "value": "1.8"
+                    },
+                    {
+                        "name": "Ethoxyquin tối đa",
+                        "unit": "mg/kg",
+                        "value": "150"
+                    },
+                    {
+                        "name": "BHA + BHT tối đa",
+                        "unit": "mg/kg",
+                        "value": "300"
+                    }
+                ],
+                "species": null,
+                "variant_code": "D002"
+            },
+            "error_code": "NONE"
+        },
+        "totalImages": 2
+    }
+}

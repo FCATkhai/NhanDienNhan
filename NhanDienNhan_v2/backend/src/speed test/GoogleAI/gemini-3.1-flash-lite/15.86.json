@@ -1,0 +1,67 @@
+{
+    "success": true,
+    "data": {
+        "response": {
+            "success": true,
+            "error_code": "NONE",
+            "message": "Trích xuất thành công",
+            "metadata": {
+                "overall_confidence": 0.95,
+                "review_warnings": []
+            },
+            "data": {
+                "category": "Thức ăn thủy sản",
+                "form_type": "khac",
+                "manufacturer": "CÔNG TY TNHH UNI-PRESIDENT VIỆT NAM",
+                "product_name": "THỨC ĂN HỖN HỢP CHO CÁ GIỐNG",
+                "net_content": "10",
+                "net_unit": "kg",
+                "mfg_date": null,
+                "exp_date": null,
+                "product_type": "Thức ăn hỗn hợp",
+                "species": "cá giống",
+                "ingredients": "Bột cá, Bột đậu nành, Bột mì, Dầu cá, Vitamin và Khoáng chất",
+                "variant_code": null,
+                "nutrition_facts": [
+                    {
+                        "name": "Độ ẩm",
+                        "value": "11",
+                        "unit": "%"
+                    },
+                    {
+                        "name": "Protein thô",
+                        "value": "40",
+                        "unit": "%"
+                    },
+                    {
+                        "name": "Béo thô",
+                        "value": "5",
+                        "unit": "%"
+                    },
+                    {
+                        "name": "Tro",
+                        "value": "14",
+                        "unit": "%"
+                    },
+                    {
+                        "name": "Xơ thô",
+                        "value": "6",
+                        "unit": "%"
+                    },
+                    {
+                        "name": "Photpho tổng",
+                        "value": "0.5",
+                        "unit": "%"
+                    },
+                    {
+                        "name": "Lysine tổng",
+                        "value": "1.8",
+                        "unit": "%"
+                    }
+                ],
+                "feeding_guide": "Hướng dẫn cho ăn áp dụng chung cho các mã D001S, D001, D002S, D002SV, D002 được trình bày chi tiết trong bảng thông tin trên bao bì."
+            }
+        },
+        "totalImages": 2
+    }
+}

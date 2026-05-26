@@ -1,0 +1,101 @@
+{
+    "success": true,
+    "data": {
+        "response": {
+            "data": {
+                "category": "fish_feed",
+                "exp_date": null,
+                "feeding_guide": {
+                    "code": "D002SV",
+                    "guide": [
+                        {
+                            "name": "Hình dạng",
+                            "value": "Viên (Pellet)"
+                        },
+                        {
+                            "name": "Kích cỡ thức ăn (mm)",
+                            "value": "0.8 - 1.2"
+                        },
+                        {
+                            "name": "Trọng lượng cơ thể (g)",
+                            "value": "3 - 5 g"
+                        },
+                        {
+                            "name": "Tỷ lệ cho ăn (%)",
+                            "value": "8 - 10"
+                        },
+                        {
+                            "name": "Số lần cho ăn / ngày",
+                            "value": "5 - 6"
+                        }
+                    ]
+                },
+                "form_type": "vien",
+                "ingredients": "Bột cá, Bột đậu nành, Bột mì, Dầu cá, Vitamin và Khoáng chất.",
+                "manufacturer": "CÔNG TY TNHH UNI-PRESIDENT VIỆT NAM",
+                "mfg_date": null,
+                "net_content": "10",
+                "net_unit": "kg",
+                "nutrition_facts": [
+                    {
+                        "name": "Độ ẩm tối đa",
+                        "unit": "%",
+                        "value": "11"
+                    },
+                    {
+                        "name": "Protein thô tối thiểu",
+                        "unit": "%",
+                        "value": "40"
+                    },
+                    {
+                        "name": "Béo thô tối thiểu",
+                        "unit": "%",
+                        "value": "5"
+                    },
+                    {
+                        "name": "Tro tối đa",
+                        "unit": "%",
+                        "value": "14"
+                    },
+                    {
+                        "name": "Xơ thô tối đa",
+                        "unit": "%",
+                        "value": "6"
+                    },
+                    {
+                        "name": "Photpho tổng tối thiểu",
+                        "unit": "%",
+                        "value": "0.5"
+                    },
+                    {
+                        "name": "Lysine tổng tối thiểu",
+                        "unit": "%",
+                        "value": "1.8"
+                    },
+                    {
+                        "name": "Ethoxyquin tối đa",
+                        "unit": "mg/kg",
+                        "value": "150"
+                    },
+                    {
+                        "name": "BHA + BHT tối đa",
+                        "unit": "mg/kg",
+                        "value": "300"
+                    }
+                ],
+                "product_name": "THỨC ĂN HỖN HỢP CHO CÁ GIỐNG / FINGERLINGS FEED",
+                "product_type": "Thức ăn hỗn hợp",
+                "species": "Cá giống",
+                "variant_code": "D002SV"
+            },
+            "error_code": "NONE",
+            "message": "Trích xuất thông tin sản phẩm thành công",
+            "metadata": {
+                "overall_confidence": 0.95,
+                "review_warnings": []
+            },
+            "success": true
+        },
+        "totalImages": 2
+    }
+}

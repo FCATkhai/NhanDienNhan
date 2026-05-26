@@ -63,12 +63,74 @@ Trả về JSON thoả mãn schema, chỉ trả về JSON, không giải thích 
 //         `;
 
 // new prompt
+// export const feed_prompt = `
+// Dựa vào hình ảnh, hãy trích xuất thông tin sản phẩm.
+
+// QUY TẮC TRÍCH XUẤT (TUYỆT ĐỐI TUÂN THỦ):
+// 1. CHỈ TRÍCH XUẤT NHỮNG GÌ NHÌN THẤY RÕ RÀNG TRÊN ẢNH. Tuyệt đối không tự ý suy luận, nội suy hoặc đoán dữ liệu dựa trên ngữ cảnh xung quanh (Ví dụ: Không được tự đoán thông số của một mã bị che dựa trên các mã liền kề).
+// 2. TÌM MÃ BIẾN THỂ (variant_code): Thường được đánh dấu tick, khoanh tròn, hoặc in lớn. Nếu không thấy, để null.
+// 3. TRÍCH XUẤT HƯỚNG DẪN CHO ĂN (feeding_guide): Chỉ lấy dữ liệu đúng của cột/dòng chứa mã variant_code. Không gộp chung mã khác.
+
+// QUY TẮC BÁO CÁO CẢNH BÁO (REVIEW WARNINGS):
+// Bạn BẮT BUỘC phải thêm thông tin vào mảng \`review_warnings\` trong \`metadata\` nếu rơi vào các trường hợp sau:
+// - BỊ CHE KHUẤT/GẠCH XÓA: Bảng dữ liệu hoặc dòng dữ liệu cần trích xuất bị gạch chéo, bôi màu, hoặc rách nhãn. (issue: "OBSCURED_DATA")
+// - MỜ/CHÓI SÁNG: Chữ không thể đọc chắc chắn. (issue: "BLURRY_TEXT")
+// Nếu gặp các tình huống này, hãy để giá trị của trường đó là null, và thêm tên trường (ví dụ: "nutrition_facts" hoặc "feeding_guide") vào \`review_warnings\` kèm giải thích chi tiết.
+
+// XỬ LÝ ẢNH LỖI NẶNG:
+// Nếu ảnh quá mờ toàn bộ, không đọc được bất kỳ chữ nào, không có nhãn, hoặc sai danh mục:
+// - success = false
+// - error_code phù hợp
+// - message mô tả lỗi cho UI
+// - Các field còn lại để null.
+
+// Chỉ trả về JSON thoả mãn schema, không giải thích gì thêm.
+// `;
+
+// test prompt
 export const feed_prompt = `
-Dựa vào hình ảnh, hãy trích xuất thông tin sản phẩm. 
+Dựa vào hình ảnh, hãy trích xuất thông tin sản phẩm.
 
 QUY TẮC TRÍCH XUẤT (TUYỆT ĐỐI TUÂN THỦ):
 1. CHỈ TRÍCH XUẤT NHỮNG GÌ NHÌN THẤY RÕ RÀNG TRÊN ẢNH. Tuyệt đối không tự ý suy luận, nội suy hoặc đoán dữ liệu dựa trên ngữ cảnh xung quanh (Ví dụ: Không được tự đoán thông số của một mã bị che dựa trên các mã liền kề).
-2. TÌM MÃ BIẾN THỂ (variant_code): Thường được đánh dấu tick, khoanh tròn, hoặc in lớn. Nếu không thấy, để null.
+
+2. XÁC ĐỊNH MÃ BIẾN THỂ (variant_code):
+
+ƯU TIÊN theo thứ tự sau:
+
+A. MÃ ĐƯỢC ĐÁNH DẤU CHỌN
+Nếu có duy nhất một mã được đánh dấu bằng:
+- dấu tick/check (✓, ✔, ☑),
+- ô được tô,
+- hoặc ký hiệu chọn rõ ràng,
+
+=> BẮT BUỘC chọn mã đó làm variant_code.
+
+Không cần dấu tick hoàn hảo.
+Chỉ cần ký hiệu chọn xuất hiện rõ ràng cạnh đúng một mã.
+
+Khi có dấu tick/check rõ ràng cạnh một mã variant:
+- ưu tiên marker trực quan này hơn suy luận "không chắc chắn".
+- Không được trả về AMBIGUOUS_VALUE nếu chỉ có duy nhất một mã được đánh dấu.
+--------------------------------------------------
+
+B. MÃ ĐƯỢC IN NỔI BẬT TRÊN BAO BÌ
+Nếu không có dấu chọn nhưng có duy nhất một mã:
+- được in lớn,
+- khác biệt rõ ràng với phần mô tả còn lại,
+- thường là mã sản phẩm như: MK 831, D20, F999, 8312...
+
+=> dùng mã đó làm variant_code.
+
+--------------------------------------------------
+
+C. KHI NÀO ĐƯỢC PHÉP TRẢ VỀ null
+
+Chỉ trả về null nếu:
+- hoàn toàn không tìm thấy mã nào hợp lý,
+- hoặc có nhiều mã cùng nổi bật / cùng được đánh dấu,
+- hoặc chữ quá mờ không đọc chắc chắn.
+
 3. TRÍCH XUẤT HƯỚNG DẪN CHO ĂN (feeding_guide): Chỉ lấy dữ liệu đúng của cột/dòng chứa mã variant_code. Không gộp chung mã khác.
 
 QUY TẮC BÁO CÁO CẢNH BÁO (REVIEW WARNINGS):

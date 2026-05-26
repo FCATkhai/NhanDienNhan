@@ -1,0 +1,101 @@
+{
+    "success": true,
+    "data": {
+        "response": {
+            "success": true,
+            "error_code": "NONE",
+            "message": "Trích xuất thành công thông tin sản phẩm từ bao bì.",
+            "metadata": {
+                "overall_confidence": 0.95,
+                "review_warnings": []
+            },
+            "data": {
+                "category": "Thức ăn thủy sản",
+                "form_type": "vien",
+                "manufacturer": "CÔNG TY TNHH UNI-PRESIDENT VIỆT NAM",
+                "product_name": "THỨC ĂN HỖN HỢP CHO CÁ GIỐNG",
+                "net_content": "10",
+                "net_unit": "kg",
+                "mfg_date": "26/02/24",
+                "exp_date": "26/05/24",
+                "product_type": "Thức ăn hỗn hợp",
+                "species": "Cá giống",
+                "ingredients": "Bột cá, Bột đậu nành, Bột mì, Dầu cá, Vitamin và Khoáng chất",
+                "variant_code": "D002SV",
+                "nutrition_facts": [
+                    {
+                        "name": "Độ ẩm tối đa",
+                        "value": "11",
+                        "unit": "%"
+                    },
+                    {
+                        "name": "Protein thô tối thiểu",
+                        "value": "40",
+                        "unit": "%"
+                    },
+                    {
+                        "name": "Béo thô tối thiểu",
+                        "value": "5",
+                        "unit": "%"
+                    },
+                    {
+                        "name": "Tro tối đa",
+                        "value": "14",
+                        "unit": "%"
+                    },
+                    {
+                        "name": "Xơ thô tối đa",
+                        "value": "6",
+                        "unit": "%"
+                    },
+                    {
+                        "name": "Photpho tổng tối thiểu",
+                        "value": "0.5",
+                        "unit": "%"
+                    },
+                    {
+                        "name": "Lysine tổng tối thiểu",
+                        "value": "1.8",
+                        "unit": "%"
+                    },
+                    {
+                        "name": "Ethoxyquin tối đa",
+                        "value": "150",
+                        "unit": "mg/kg"
+                    },
+                    {
+                        "name": "BHA + BHT tối đa",
+                        "value": "300",
+                        "unit": "mg/kg"
+                    }
+                ],
+                "feeding_guide": {
+                    "code": "D002SV",
+                    "guide": [
+                        {
+                            "name": "Hình dạng",
+                            "value": "Viên (Pellet)"
+                        },
+                        {
+                            "name": "Kích cỡ thức ăn",
+                            "value": "0.8 - 1.2 mm"
+                        },
+                        {
+                            "name": "Trọng lượng cơ thể",
+                            "value": "3 - 5 g"
+                        },
+                        {
+                            "name": "Tỷ lệ cho ăn",
+                            "value": "8 - 10 %"
+                        },
+                        {
+                            "name": "Số lần cho ăn / ngày",
+                            "value": "5 - 6"
+                        }
+                    ]
+                }
+            }
+        },
+        "totalImages": 2
+    }
+}

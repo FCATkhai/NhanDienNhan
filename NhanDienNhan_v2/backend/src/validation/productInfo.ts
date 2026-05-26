@@ -69,7 +69,12 @@ const BaseProductDataSchema = z.object({
     .nullable()
     .describe("Đơn vị của giá trị định lượng (g, kg, l...)"),
   mfg_date: z.string().nullable().describe("Ngày sản xuất"),
-  exp_date: z.string().nullable().describe("Hạn sử dụng"),
+  exp_date: z
+    .string()
+    .nullable()
+    .describe(
+      "Hạn sử dụng, nếu được in thời gian bao lâu kể từ ngày sản xuất thì tính ngày hết hạn = ngày sản xuất + thời gian đó",
+    ),
 });
 
 // ==========================================
@@ -91,6 +96,7 @@ export const PesticideDataSchema = BaseProductDataSchema.extend({
     .array(ActiveIngredientSchema)
     .nullable()
     .describe("Danh sách hoạt chất"),
+  uses: z.string().nullable().describe("Công dụng"),
   dosage: z.string().nullable().describe("Liều lượng sử dụng"),
   target_crops: z
     .array(z.string())
@@ -123,7 +129,11 @@ const FeedGuideVariantSchema = z.object({
   guide: z
     .array(
       z.object({
-        name: z.string().describe("Tên mục hướng dẫn"),
+        name: z
+          .string()
+          .describe(
+            "Tên mục hướng dẫn, nếu có song ngữ thì ưu tiên tiếng Việt",
+          ),
         value: z.string().describe("Nội dung hướng dẫn cho mục này"),
       }),
     )
@@ -159,7 +169,7 @@ export const FishFeedDataSchema = BaseProductDataSchema.extend({
     )
     .nullable()
     .describe(
-      "Thành phần dinh dưỡng (composition) tương ứng với biến thể thức ăn",
+      "Thành phần dinh dưỡng (composition) tương ứng với variant_code.",
     ),
   feeding_guide: z
     .union([

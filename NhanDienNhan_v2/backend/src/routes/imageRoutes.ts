@@ -1,6 +1,9 @@
 import express, { Request, Response, NextFunction } from "express";
 import multer from "multer";
-import { processImagesWithOpenAI } from "../utils/imageProcessor";
+import {
+  processImagesWithOpenAI,
+  processImagesWithOpenAI_chatCompletions,
+} from "../utils/imageProcessor";
 import { pesticide_prompt, feed_prompt } from "../utils/prompts";
 
 const router = express.Router();
@@ -94,7 +97,7 @@ router.post("/analyze", async (req: Request, res: Response) => {
     const imageBuffers = files.map((file) => file.buffer);
     const imageTypes = files.map((file) => file.mimetype);
 
-    const result = await processImagesWithOpenAI(
+    const result = await processImagesWithOpenAI_chatCompletions(
       imageBuffers,
       imageTypes,
       prompt,

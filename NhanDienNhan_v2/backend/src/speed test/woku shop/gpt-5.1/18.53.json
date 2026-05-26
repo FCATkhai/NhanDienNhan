@@ -1,0 +1,50 @@
+{
+    "success": true,
+    "data": {
+        "response": {
+            "data": {
+                "category": "fish_feed",
+                "exp_date": null,
+                "form_type": "vien",
+                "manufacturer": "CÔNG TY TNHH UNI-PRESIDENT VIỆT NAM",
+                "mfg_date": null,
+                "net_content": "10",
+                "product_name": "THỨC ĂN HỖN HỢP CHO CÁ GIỐNG",
+                "species": null,
+                "feeding_guide": {
+                    "code": null,
+                    "guide": []
+                },
+                "ingredients": "Bột cá, Bột đậu nành, Bột mì, Dầu cá, Vitamin và Khoáng chất. Fish meal, Soybean meal, Wheat flour, Fish oil, Vitamins and Minerals.",
+                "net_unit": "kg",
+                "nutrition_facts": null,
+                "product_type": "THỨC ĂN HỖN HỢP CHO CÁ GIỐNG (FINGERLINGS FEED)",
+                "variant_code": null
+            },
+            "error_code": "NONE",
+            "message": "Trích xuất dữ liệu thành công nhưng không xác định được mã biến thể cụ thể.",
+            "metadata": {
+                "overall_confidence": 0.87,
+                "review_warnings": [
+                    {
+                        "field": "variant_code",
+                        "issue": "AMBIGUOUS_VALUE",
+                        "message": "Trên bao bì có nhiều mã D001S, D001, D002S, D002SV, D002 đều được in nổi bật như nhau, không có dấu tick/chọn nên không xác định được mã biến thể duy nhất."
+                    },
+                    {
+                        "field": "feeding_guide",
+                        "issue": "OBSCURED_DATA",
+                        "message": "Bảng hướng dẫn cho ăn rõ ràng nhưng do không chọn được mã biến thể cụ thể nên không thể trích xuất đúng dòng/cột tương ứng theo yêu cầu, để null toàn bộ."
+                    },
+                    {
+                        "field": "nutrition_facts",
+                        "issue": "OBSCURED_DATA",
+                        "message": "Bảng thành phần dinh dưỡng rõ ràng nhưng vì không xác định được mã biến thể nên không thể cắt riêng đúng cột tương ứng, để null theo quy tắc không được gộp dữ liệu nhiều mã."
+                    }
+                ]
+            },
+            "success": true
+        },
+        "totalImages": 2
+    }
+}

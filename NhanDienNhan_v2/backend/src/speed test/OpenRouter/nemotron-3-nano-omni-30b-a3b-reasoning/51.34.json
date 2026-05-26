@@ -1,0 +1,80 @@
+{
+    "success": true,
+    "data": {
+        "response": {
+            "success": true,
+            "error_code": "NONE",
+            "message": "NONE",
+            "metadata": {
+                "overall_confidence": 0.95,
+                "review_warnings": []
+            },
+            "data": {
+                "category": "fish_feed",
+                "form_type": "bot",
+                "manufacturer": "UNI-PRESIDENT VIETNAM CO., LTD",
+                "product_name": "THỨC ĂN HỒN HỢP CHO CÁ GIỒNG (FINGERLINGS FEED)",
+                "net_content": "10 kg",
+                "net_unit": "kg",
+                "mfg_date": null,
+                "exp_date": null,
+                "product_type": "FINGERLINGS FEED",
+                "species": "Cá giosis (tilapia), cá cá (carp), cá lóc (snakehead), cá cào (catfish)",
+                "ingredients": "Fish meal, Soybean meal, Wheat flour, Fish oil, Vitamins and Minerals",
+                "variant_code": "D002SV",
+                "nutrition_facts": [
+                    {
+                        "name": "Moisture, max",
+                        "value": "11%",
+                        "unit": "%"
+                    },
+                    {
+                        "name": "Crude protein, min",
+                        "value": "40%",
+                        "unit": "%"
+                    },
+                    {
+                        "name": "Crude fat, min",
+                        "value": "5%",
+                        "unit": "%"
+                    },
+                    {
+                        "name": "Crude fiber, max",
+                        "value": "6%",
+                        "unit": "%"
+                    },
+                    {
+                        "name": "Total phosphorus, min",
+                        "value": "0.5%",
+                        "unit": "%"
+                    },
+                    {
+                        "name": "Lysine, min",
+                        "value": "1.8%",
+                        "unit": "%"
+                    },
+                    {
+                        "name": "Ethoxyquin, max",
+                        "value": "150 mg/kg",
+                        "unit": "mg/kg"
+                    },
+                    {
+                        "name": "BHA + BHT, max",
+                        "value": "300 mg/kg",
+                        "unit": "mg/kg"
+                    }
+                ],
+                "feeding_guide": {
+                    "code": "D002SV",
+                    "guide": [
+                        {
+                            "name": "0.8 - 1.2",
+                            "value": "3 - 5 - 6"
+                        }
+                    ]
+                }
+            }
+        },
+        "totalImages": 2
+    }
+}

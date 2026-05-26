@@ -24,6 +24,12 @@ app.get("/", (req, res) => {
   res.send("Welcome to the Image Analysis API");
 });
 
+import { testCallOpenAI } from "@backend/utils/imageProcessor";
+app.post("/test-openai", async (req, res) => {
+  await testCallOpenAI();
+  res.json({ status: "ok", message: "Test completed successfully" });
+});
+
 // Health check endpoint
 app.get("/health", (req, res) => {
   res.json({ status: "ok", message: "Server is running" });
