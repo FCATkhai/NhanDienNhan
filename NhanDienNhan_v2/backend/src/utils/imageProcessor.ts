@@ -8,15 +8,15 @@ import {
 
 dotenv.config();
 
-// const client = new OpenAI({
-//   apiKey: process.env.wokushop_api_key,
-//   baseURL: "https://llm.wokushop.com/v1/",
-// });
-
 const client = new OpenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-  baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
+  apiKey: process.env.wokushop_api_key,
+  baseURL: "https://llm.wokushop.com/v1/",
 });
+
+// const client = new OpenAI({
+//   apiKey: process.env.GEMINI_API_KEY,
+//   baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
+// });
 
 export const processImagesWithOpenAI = async (
   imageBuffers: Buffer[],

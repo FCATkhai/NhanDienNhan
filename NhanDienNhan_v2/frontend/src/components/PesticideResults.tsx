@@ -144,6 +144,14 @@ export function PesticideResults({
       warning: getFieldWarning(data, "exp_date"),
     },
     {
+      label: "Công dụng",
+      key: "uses",
+      icon: "🎯",
+      value: data.uses,
+      isEmpty: isFieldEmpty(data.uses),
+      warning: getFieldWarning(data, "uses"),
+    },
+    {
       label: "Cách sử dụng & Liều lượng",
       key: "dosage",
       icon: "💊",

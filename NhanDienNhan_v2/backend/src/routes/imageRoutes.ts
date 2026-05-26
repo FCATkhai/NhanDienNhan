@@ -97,7 +97,7 @@ router.post("/analyze", async (req: Request, res: Response) => {
     const imageBuffers = files.map((file) => file.buffer);
     const imageTypes = files.map((file) => file.mimetype);
 
-    const result = await processImagesWithOpenAI_chatCompletions(
+    const result = await processImagesWithOpenAI(
       imageBuffers,
       imageTypes,
       prompt,

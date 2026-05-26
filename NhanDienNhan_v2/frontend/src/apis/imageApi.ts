@@ -35,6 +35,7 @@ export interface ProductInfo {
   manufacturer?: string;
   registration_number?: string;
   active_ingredients?: Array<{ name: string; content: string }>;
+  uses?: string;
   dosage?: string;
   target_crops?: string[];
   target_pests?: string[];
