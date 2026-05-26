@@ -23,6 +23,7 @@ export const processImagesWithOpenAI = async (
   imageTypes: string[],
   prompt: string = "what's in these images?",
   schemaType: "fish_feed" | "pesticide" = "pesticide",
+  isParsed: boolean = false,
 ) => {
   try {
     // Convert buffers to base64
@@ -72,8 +73,10 @@ export const processImagesWithOpenAI = async (
 
     return {
       success: true,
-      //   response: JSON.parse(response.output_text),
-      response: response.output_text,
+      response: isParsed
+        ? JSON.parse(response.output_text)
+        : response.output_text,
+      //   response: response.output_text,
     };
   } catch (error) {
     console.error("OpenAI API Error:", error);
@@ -86,6 +89,7 @@ export const processImagesWithOpenAI_chatCompletions = async (
   imageTypes: string[],
   prompt: string = "what's in these images?",
   schemaType: "fish_feed" | "pesticide" = "pesticide",
+  isParsed: boolean = false,
 ) => {
   try {
     // Convert buffers to base64
@@ -137,7 +141,7 @@ export const processImagesWithOpenAI_chatCompletions = async (
 
     return {
       success: true,
-      response: JSON.parse(outputText),
+      response: isParsed ? JSON.parse(outputText) : outputText,
     };
   } catch (error) {
     console.error("OpenAI API Error:", error);
@@ -156,5 +160,7 @@ export const testCallOpenAI = async () => {
       },
     ],
   });
-  console.log(response.choices[0].message);
+  if (response.choices[0]) {
+    console.log(response.choices[0].message);
+  }
 };
