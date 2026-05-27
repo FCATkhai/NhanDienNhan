@@ -116,11 +116,12 @@ const BaseProductDataSchema = z.object({
   mfg_date: z.string().nullable().describe("Ngày sản xuất"),
   exp_date: z
     .string()
-    .nullable()
     .describe(
-      "Hạn sử dụng, nếu được in thời gian bao lâu kể từ ngày sản xuất thì tính ngày hết hạn = ngày sản xuất + thời gian đó",
+      "Hạn sử dụng, nếu chỉ ghi khoảng thời gian (VD: '12 tháng') thì trả về những gì có trên nhãn",
     ),
 });
+
+// Hạn sử dụng, nếu ghi thời gian cụ thể thì ưu tiên ngày tháng, nếu chỉ ghi khoảng thời gian (VD: '12 tháng') thì ghi nguyên văn
 
 // ==========================================
 // 3. SCHEMA CHI TIẾT THEO DANH MỤC (DATA & RESPONSE)

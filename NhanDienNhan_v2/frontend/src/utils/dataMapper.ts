@@ -23,3 +23,14 @@ export function getNetContentTitle(unit: string) {
     )?.[0] || "Dung lượng"
   );
 }
+
+const unitMap: Record<string, string> = {
+  gram: "g",
+  kg: "Kg",
+  lit: "Lít",
+  ml: "ml",
+};
+
+export function getUnitLabel(unit: string) {
+  return unitMap[unit.toLocaleLowerCase()] || unit;
+}

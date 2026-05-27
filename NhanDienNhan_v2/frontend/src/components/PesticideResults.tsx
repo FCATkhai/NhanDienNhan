@@ -1,7 +1,11 @@
 import { AlertCircle, CheckCircle2, AlertTriangle } from "lucide-react";
 import type { ProductInfo } from "../apis/imageApi";
 import { getFieldWarning, isFieldEmpty } from "../apis/imageApi";
-import { getNetContentTitle, getFormTypeLabel } from "../utils/dataMapper";
+import {
+  getNetContentTitle,
+  getFormTypeLabel,
+  getUnitLabel,
+} from "../utils/dataMapper";
 
 interface PesticideResultsProps {
   data: ProductInfo;
@@ -115,7 +119,7 @@ export function PesticideResults({
       key: "net_content",
       icon: "📏",
       value: data.net_content
-        ? `${data.net_content}${data.net_unit ? ` ${data.net_unit}` : ""}`
+        ? `${data.net_content}${data.net_unit ? ` ${getUnitLabel(data.net_unit)}` : ""}`
         : null,
       isEmpty: isFieldEmpty(data.net_content),
       warning: getFieldWarning(data, "net_content"),
@@ -148,9 +152,10 @@ export function PesticideResults({
       label: "Thời gian cách ly trước thu hoạch",
       key: "pre_harvest_interval_days",
       icon: "⏱️",
-      value: data.pre_harvest_interval_days
-        ? `${data.pre_harvest_interval_days} ngày`
-        : null,
+      value:
+        data.pre_harvest_interval_days || data.pre_harvest_interval_days === 0
+          ? `${data.pre_harvest_interval_days} ngày`
+          : null,
       isEmpty: isFieldEmpty(data.pre_harvest_interval_days),
       warning: getFieldWarning(data, "pre_harvest_interval_days"),
     },
@@ -249,7 +254,14 @@ export function PesticideResults({
               </p>
             </div>
           )}
-          <p className="text-sm text-green-900 leading-relaxed">{data.uses}</p>
+          {data.uses.split("\n").map((line, index) => (
+            <p
+              key={index}
+              className="text-sm text-green-900 leading-relaxed text-left"
+            >
+              {line}
+            </p>
+          ))}
         </div>
       ) : (
         <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
@@ -282,7 +294,6 @@ export function PesticideResults({
               </p>
             </div>
           )}
-          {/* <p className="text-sm text-blue-900 leading-relaxed">{data.dosage}</p> */}
           {data.dosage.split("\n").map((line, index) => (
             <p
               key={index}

@@ -1,7 +1,11 @@
 import { AlertCircle, CheckCircle2, AlertTriangle } from "lucide-react";
 import type { ProductInfo } from "../apis/imageApi";
 import { getFieldWarning, isFieldEmpty } from "../apis/imageApi";
-import { getNetContentTitle, getFormTypeLabel } from "../utils/dataMapper";
+import {
+  getNetContentTitle,
+  getFormTypeLabel,
+  getUnitLabel,
+} from "../utils/dataMapper";
 
 interface FishFeedResultsProps {
   data: ProductInfo;
@@ -75,7 +79,7 @@ export function FishFeedResults({
       key: "net_content",
       icon: "📏",
       value: data.net_content
-        ? `${data.net_content}${data.net_unit ? ` ${data.net_unit}` : ""}`
+        ? `${data.net_content}${data.net_unit ? ` ${getUnitLabel(data.net_unit)}` : ""}`
         : null,
       isEmpty: isFieldEmpty(data.net_content),
       warning: getFieldWarning(data, "net_content"),
