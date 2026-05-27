@@ -6,12 +6,12 @@ const formTypeMap: Record<string, string> = {
 };
 
 export function getFormTypeLabel(formType: string) {
-  return formTypeMap[formType] || "Không xác định";
+  return formTypeMap[formType.toLocaleLowerCase()] || "Không xác định";
 }
 
 const netContentCategoryMap = {
   "Khối lượng tịnh": ["kg", "g", "mg"],
-  "Thể tích thực": ["lít", "l", "ml"],
+  "Thể tích thực": ["lít", "lit", "l", "ml"],
 };
 
 export function getNetContentTitle(unit: string) {
