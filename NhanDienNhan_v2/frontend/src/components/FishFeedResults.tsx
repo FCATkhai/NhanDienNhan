@@ -6,6 +6,7 @@ import {
   getFormTypeLabel,
   getUnitLabel,
 } from "../utils/dataMapper";
+import { formatDateString, calculateExpiryDate } from "../utils/dateUtils";
 
 interface FishFeedResultsProps {
   data: ProductInfo;
@@ -31,6 +32,14 @@ export function FishFeedResults({
   const confidenceScore =
     data.metadata?.overall_confidence ?? data.confidence_score ?? 0;
   const confidence = confidenceScore * 100;
+
+  const mfgDate = data.mfg_date ? formatDateString(data.mfg_date) : null;
+  const expDate = data.exp_date ? formatDateString(data.exp_date) : null;
+  let calculatedExpDate = null;
+  if (!expDate && mfgDate && data.exp_date) {
+    // Calculate expiry date if it's not already formatted
+    calculatedExpDate = calculateExpiryDate(mfgDate, data.exp_date);
+  }
 
   // Prepare all fields for display
   const basicFields: FieldDisplay[] = [
@@ -96,7 +105,7 @@ export function FishFeedResults({
       label: "Ngày sản xuất",
       key: "mfg_date",
       icon: "📅",
-      value: data.mfg_date,
+      value: mfgDate,
       isEmpty: isFieldEmpty(data.mfg_date),
       warning: getFieldWarning(data, "mfg_date"),
     },
@@ -104,7 +113,7 @@ export function FishFeedResults({
       label: "Ngày hết hạn",
       key: "exp_date",
       icon: "⏰",
-      value: data.exp_date,
+      value: expDate || calculatedExpDate || data.exp_date,
       isEmpty: isFieldEmpty(data.exp_date),
       warning: getFieldWarning(data, "exp_date"),
     },
