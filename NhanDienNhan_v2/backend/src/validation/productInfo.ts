@@ -52,6 +52,40 @@ export const BaseResponseSchema = z.object({
   ),
 });
 
+const unitMap = {
+  bao: "Bao",
+  bo: "Bộ",
+  cai: "Cái",
+  cay: "Cây",
+  con: "Con",
+  chai: "Chai",
+  cuon: "Cuộn",
+  goi: "Gói",
+  gram: "Gram",
+  hop: "Hộp",
+  kg: "Kg",
+  lit: "Lít",
+  lon: "Lon",
+  m: "Mét",
+  mieng: "Miếng",
+  ml: "ml",
+  ong: "Ống",
+  tam: "Tấm",
+  thanh: "Thanh",
+  thung: "Thùng",
+  tui: "Túi",
+  vien: "Viên",
+  nguoi: "Người",
+  lan: "Lần",
+  gio: "Giờ",
+  ngay: "Ngày",
+  thang: "Tháng",
+  nam: "Năm",
+  m2: "M^2",
+  m3: "M^3",
+  kwh: "KWh",
+};
+
 // Dữ liệu chung của tất cả sản phẩm
 const BaseProductDataSchema = z.object({
   category: z
@@ -65,9 +99,11 @@ const BaseProductDataSchema = z.object({
   product_name: z.string().nullable().describe("Tên sản phẩm"),
   net_content: z.string().nullable().describe("Giá trị định lượng (số)"),
   net_unit: z
-    .string()
+    .enum(Object.keys(unitMap) as (keyof typeof unitMap)[])
     .nullable()
-    .describe("Đơn vị của giá trị định lượng (g, kg, l...)"),
+    .describe(
+      `Đơn vị của giá trị định lượng ${Object.values(unitMap).join(", ")}`,
+    ),
   uses: z.string().nullable().describe("Công dụng (nếu có)"),
   mfg_date: z.string().nullable().describe("Ngày sản xuất"),
   exp_date: z
