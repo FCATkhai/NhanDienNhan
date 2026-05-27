@@ -72,7 +72,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg py-8 px-4">
-      <div className="max-w-2xl mx-auto">
+      <div className="container mx-auto max-w-2xl">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-2">🌾 Nhận diện sản phẩm</h1>
@@ -83,7 +83,7 @@ function App() {
 
         {/* Error Alert */}
         {error && (
-          <div className="mb-6 bg-red-100 border-l-4 border-red-500 p-4 rounded text-red-700">
+          <div className="mb-6 bg-red-100 border-l-4 border-red-500 p-4 rounded text-red-700 text-center">
             {error}
           </div>
         )}

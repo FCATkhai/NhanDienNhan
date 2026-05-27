@@ -1,6 +1,7 @@
 import { AlertCircle, CheckCircle2, AlertTriangle } from "lucide-react";
 import type { ProductInfo } from "../apis/imageApi";
 import { getFieldWarning, isFieldEmpty } from "../apis/imageApi";
+import { getNetContentTitle, getFormTypeLabel } from "../utils/dataMapper";
 
 interface FishFeedResultsProps {
   data: ProductInfo;
@@ -70,7 +71,7 @@ export function FishFeedResults({
       warning: getFieldWarning(data, "product_type"),
     },
     {
-      label: "Dung lượng",
+      label: getNetContentTitle(data.net_unit || ""),
       key: "net_content",
       icon: "📏",
       value: data.net_content
@@ -83,7 +84,7 @@ export function FishFeedResults({
       label: "Hình dạng/Dạng sản phẩm",
       key: "form_type",
       icon: "🏷️",
-      value: data.form_type,
+      value: getFormTypeLabel(data.form_type || ""),
       isEmpty: isFieldEmpty(data.form_type),
       warning: getFieldWarning(data, "form_type"),
     },
@@ -102,14 +103,6 @@ export function FishFeedResults({
       value: data.exp_date,
       isEmpty: isFieldEmpty(data.exp_date),
       warning: getFieldWarning(data, "exp_date"),
-    },
-    {
-      label: "Thành phần",
-      key: "ingredients",
-      icon: "🥣",
-      value: data.ingredients,
-      isEmpty: isFieldEmpty(data.ingredients),
-      warning: getFieldWarning(data, "ingredients"),
     },
   ];
 
@@ -164,7 +157,7 @@ export function FishFeedResults({
   return (
     <div className="space-y-6">
       {/* Images Section */}
-      <div className="border-b-2 border-blue-400 pb-6">
+      <div className="border-b-2 border-blue-400 pb-6 text-center">
         <h3 className="text-sm font-semibold text-gray-900 mb-4">
           📷 Ảnh đã tải lên ({images.length})
         </h3>
@@ -185,7 +178,7 @@ export function FishFeedResults({
       </div>
 
       {/* Basic Fields - Grid Layout */}
-      <div className="border-b-2 border-blue-600 pb-6">
+      <div className="border-b-2 border-blue-600 pb-6 text-center">
         <h2 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b">
           ℹ️ Thông tin sản phẩm
         </h2>
@@ -236,6 +229,42 @@ export function FishFeedResults({
           })}
         </div>
       </div>
+
+      {/* Ingredients Section */}
+      {data.ingredients && (
+        <div className="bg-linear-to-br from-amber-50 to-orange-50 border-l-4 border-amber-400 rounded-lg p-4">
+          <h2 className="text-sm font-bold uppercase text-gray-900 mb-3 pb-2 border-b flex items-center gap-2">
+            🥣 Thành phần
+          </h2>
+          {getFieldWarning(data, "ingredients") && (
+            <div className="mb-3 pb-3 border-b border-amber-200">
+              <p className="text-xs text-amber-600 font-semibold flex items-center gap-1">
+                <AlertTriangle className="h-3 w-3" />
+                {getFieldWarning(data, "ingredients")?.issue}
+              </p>
+              <p className="text-xs text-amber-600 mt-1">
+                {getFieldWarning(data, "ingredients")?.message}
+              </p>
+            </div>
+          )}
+          <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">
+            {data.ingredients}
+          </p>
+        </div>
+      )}
+      {!data.ingredients && (
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="h-4 w-4 text-orange-600 mt-0.5" />
+            <div>
+              <p className="text-xs font-semibold uppercase text-orange-700">
+                🥣 Thành phần
+              </p>
+              <p className="text-sm text-orange-700 mt-1">Không có dữ liệu</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Nutrition Facts */}
       {data.nutrition_facts && data.nutrition_facts.length > 0 && (
@@ -357,6 +386,12 @@ export function FishFeedResults({
                 </tbody>
               </table>
             </div>
+          )}
+          {(!data.feeding_guide.guide ||
+            data.feeding_guide.guide.length === 0) && (
+            <p className="text-sm text-gray-700 italic">
+              Không trích xuất được dữ liệu
+            </p>
           )}
         </div>
       )}

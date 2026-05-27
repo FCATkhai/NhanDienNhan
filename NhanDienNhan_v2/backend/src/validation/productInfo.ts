@@ -68,6 +68,7 @@ const BaseProductDataSchema = z.object({
     .string()
     .nullable()
     .describe("Đơn vị của giá trị định lượng (g, kg, l...)"),
+  uses: z.string().nullable().describe("Công dụng (nếu có)"),
   mfg_date: z.string().nullable().describe("Ngày sản xuất"),
   exp_date: z
     .string()
@@ -90,18 +91,22 @@ export const ActiveIngredientSchema = z.object({
 
 export const PesticideDataSchema = BaseProductDataSchema.extend({
   category: z.literal("pesticide").describe("Danh mục sản phẩm"),
-  product_type: z.string().nullable().describe("Loại sản phẩm"),
+  product_type: z
+    .string()
+    .nullable()
+    .describe(
+      "Loại sản phẩm, ví dụ: thuốc bảo vệ thực vật, thuốc trị bệnh thuỷ sản...",
+    ),
   registration_number: z.string().nullable().describe("Số đăng ký"),
   active_ingredients: z
     .array(ActiveIngredientSchema)
     .nullable()
     .describe("Danh sách hoạt chất"),
-  uses: z.string().nullable().describe("Công dụng"),
   dosage: z.string().nullable().describe("Liều lượng sử dụng"),
   target_crops: z
     .array(z.string())
     .nullable()
-    .describe("Danh sách cây trồng áp dụng"),
+    .describe("Danh sách cây trồng/loài cá áp dụng"),
   target_pests: z
     .array(z.string())
     .nullable()
@@ -114,7 +119,9 @@ export const PesticideDataSchema = BaseProductDataSchema.extend({
 });
 
 export const PesticideResponseSchema = BaseResponseSchema.extend({
-  data: PesticideDataSchema.nullable().describe("Dữ liệu sản phẩm thuốc BVTV"),
+  data: PesticideDataSchema.nullable().describe(
+    "Dữ liệu sản phẩm thuốc BVTV/thuốc thuỷ sản",
+  ),
 });
 
 // --- THỨC ĂN THỦY SẢN (FISH FEED) ---

@@ -128,7 +128,7 @@ export function ImageUpload({
   return (
     <div className="space-y-4">
       {/* Category Selector */}
-      <div>
+      <div className="text-center">
         <label className="text-sm font-semibold text-gray-900 block mb-2">
           📂 Chọn loại sản phẩm
         </label>
@@ -142,7 +142,7 @@ export function ImageUpload({
                 : "bg-gray-100 text-gray-900 hover:bg-gray-200"
             } disabled:opacity-50 disabled:cursor-not-allowed`}
           >
-            🌿 Thuốc nông dược
+            🧴 Thuốc nông dược/Thuốc thuỷ sản
           </button>
           <button
             onClick={() => onCategoryChange("fish_feed")}
@@ -159,7 +159,7 @@ export function ImageUpload({
       </div>
 
       {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded text-red-700 text-sm">
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded text-red-700 text-sm text-center">
           {error}
         </div>
       )}
@@ -193,7 +193,7 @@ export function ImageUpload({
       </div>
 
       {selectedFiles.length > 0 && (
-        <div>
+        <div className="text-center">
           <h3 className="text-sm font-semibold text-gray-900 mb-3">
             Ảnh đã tải lên
           </h3>
@@ -223,7 +223,7 @@ export function ImageUpload({
         </div>
       )}
 
-      <div>
+      <div className="text-center">
         <h3 className="text-sm font-semibold text-gray-900 mb-3">
           Ảnh mẫu (bấm để thêm)
         </h3>
