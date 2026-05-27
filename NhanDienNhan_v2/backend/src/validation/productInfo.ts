@@ -53,6 +53,17 @@ export const BaseResponseSchema = z.object({
 });
 
 const unitMap = {
+  gram: "Gram",
+  kg: "Kg",
+  lit: "Lít",
+  m: "Mét",
+  ml: "ml",
+  m2: "M^2",
+  m3: "M^3",
+  kwh: "KWh",
+};
+
+const packageMap = {
   bao: "Bao",
   bo: "Bộ",
   cai: "Cái",
@@ -61,14 +72,10 @@ const unitMap = {
   chai: "Chai",
   cuon: "Cuộn",
   goi: "Gói",
-  gram: "Gram",
   hop: "Hộp",
-  kg: "Kg",
-  lit: "Lít",
   lon: "Lon",
-  m: "Mét",
+  can: "Can",
   mieng: "Miếng",
-  ml: "ml",
   ong: "Ống",
   tam: "Tấm",
   thanh: "Thanh",
@@ -81,9 +88,6 @@ const unitMap = {
   ngay: "Ngày",
   thang: "Tháng",
   nam: "Năm",
-  m2: "M^2",
-  m3: "M^3",
-  kwh: "KWh",
 };
 
 // Dữ liệu chung của tất cả sản phẩm
@@ -102,8 +106,12 @@ const BaseProductDataSchema = z.object({
     .enum(Object.keys(unitMap) as (keyof typeof unitMap)[])
     .nullable()
     .describe(
-      `Đơn vị của giá trị định lượng ${Object.values(unitMap).join(", ")}`,
+      `Đơn vị của giá trị định lượng: ${Object.values(unitMap).join(", ")}`,
     ),
+  package_type: z
+    .enum(Object.keys(packageMap) as (keyof typeof packageMap)[])
+    .nullable()
+    .describe(`Quy cách đóng gói: ${Object.values(packageMap).join(", ")}`),
   uses: z.string().nullable().describe("Công dụng (nếu có)"),
   mfg_date: z.string().nullable().describe("Ngày sản xuất"),
   exp_date: z
