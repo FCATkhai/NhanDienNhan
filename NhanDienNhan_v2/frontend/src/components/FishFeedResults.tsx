@@ -6,7 +6,6 @@ import {
   getFormTypeLabel,
   getUnitLabel,
 } from "../utils/dataMapper";
-import { formatDateString, calculateExpiryDate } from "../utils/dateUtils";
 
 interface FishFeedResultsProps {
   data: ProductInfo;
@@ -32,14 +31,6 @@ export function FishFeedResults({
   const confidenceScore =
     data.metadata?.overall_confidence ?? data.confidence_score ?? 0;
   const confidence = confidenceScore * 100;
-
-  const mfgDate = data.mfg_date ? formatDateString(data.mfg_date) : null;
-  const expDate = data.exp_date ? formatDateString(data.exp_date) : null;
-  let calculatedExpDate = null;
-  if (!expDate && mfgDate && data.exp_date) {
-    // Calculate expiry date if it's not already formatted
-    calculatedExpDate = calculateExpiryDate(mfgDate, data.exp_date);
-  }
 
   // Prepare all fields for display
   const basicFields: FieldDisplay[] = [
@@ -105,7 +96,7 @@ export function FishFeedResults({
       label: "Ngày sản xuất",
       key: "mfg_date",
       icon: "📅",
-      value: mfgDate,
+      value: data.mfg_date,
       isEmpty: isFieldEmpty(data.mfg_date),
       warning: getFieldWarning(data, "mfg_date"),
     },
@@ -113,7 +104,7 @@ export function FishFeedResults({
       label: "Ngày hết hạn",
       key: "exp_date",
       icon: "⏰",
-      value: expDate || calculatedExpDate || data.exp_date,
+      value: data.exp_date,
       isEmpty: isFieldEmpty(data.exp_date),
       warning: getFieldWarning(data, "exp_date"),
     },
@@ -244,7 +235,7 @@ export function FishFeedResults({
       </div>
 
       {/* Ingredients Section */}
-      {data.ingredients && (
+      {data.ingredients && typeof data.ingredients === "string" && (
         <div className="bg-linear-to-br from-amber-50 to-orange-50 border-l-4 border-amber-400 rounded-lg p-4">
           <h2 className="text-sm font-bold uppercase text-gray-900 mb-3 pb-2 border-b flex items-center gap-2">
             🥣 Thành phần

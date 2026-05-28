@@ -88,7 +88,8 @@ router.post("/analyze", async (req: Request, res: Response) => {
     const schemaType =
       req.query.category === "fish_feed" ? "fish_feed" : "pesticide";
     const isParsed = req.query.parsed === "true";
-    console.log("Processing images for category:", schemaType);
+    const formatDates = req.query.formatDates === "true";
+    console.log("Processing images for category:", schemaType, "formatDates:", formatDates);
 
     const files = req.files as Express.Multer.File[];
 
@@ -104,6 +105,7 @@ router.post("/analyze", async (req: Request, res: Response) => {
       prompt,
       schemaType,
       isParsed,
+      formatDates,
     );
 
     return res.status(200).json({

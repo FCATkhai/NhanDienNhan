@@ -19,9 +19,9 @@ export function formatDateString(dateStr: string): string {
     return "";
   }
 
-  let day = parseInt(numbers[0]);
-  let month = parseInt(numbers[1]);
-  let year = parseInt(numbers[2]);
+  let day = parseInt(numbers[0]!);
+  let month = parseInt(numbers[1]!);
+  let year = parseInt(numbers[2]!);
 
   // Validate day and month
   if (day < 1 || day > 31 || month < 1 || month > 12) {
@@ -115,9 +115,9 @@ export function calculateExpiryDate(
     return "";
   }
 
-  const day = parseInt(dateParts[0]);
-  const month = parseInt(dateParts[1]);
-  const year = parseInt(dateParts[2]);
+  const day = parseInt(dateParts[0]!);
+  const month = parseInt(dateParts[1]!);
+  const year = parseInt(dateParts[2]!);
 
   // Validate date parts
   if (

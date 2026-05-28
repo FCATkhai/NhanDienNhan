@@ -5,6 +5,7 @@ import {
   FishFeedResponseSchema,
   PesticideResponseSchema,
 } from "@backend/validation/productInfo";
+import { formatDatesInResponse } from "./dateProcessor";
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ export const processImagesWithOpenAI = async (
   prompt: string = "what's in these images?",
   schemaType: "fish_feed" | "pesticide" = "pesticide",
   isParsed: boolean = false,
+  formatDates: boolean = false,
 ) => {
   try {
     // Convert buffers to base64
@@ -71,12 +73,27 @@ export const processImagesWithOpenAI = async (
       },
     });
 
+    let parsedResponse = isParsed
+      ? JSON.parse(response.output_text)
+      : response.output_text;
+
+    // Format dates if requested (independent of isParsed)
+    if (formatDates) {
+      // Parse if not already parsed
+      if (typeof parsedResponse === "string") {
+        parsedResponse = JSON.parse(parsedResponse);
+      }
+      // Format dates
+      parsedResponse = formatDatesInResponse(parsedResponse);
+      // Stringify back if isParsed was false
+      if (!isParsed) {
+        parsedResponse = JSON.stringify(parsedResponse);
+      }
+    }
+
     return {
       success: true,
-      response: isParsed
-        ? JSON.parse(response.output_text)
-        : response.output_text,
-      //   response: response.output_text,
+      response: parsedResponse,
     };
   } catch (error) {
     console.error("OpenAI API Error:", error);
@@ -90,6 +107,7 @@ export const processImagesWithOpenAI_chatCompletions = async (
   prompt: string = "what's in these images?",
   schemaType: "fish_feed" | "pesticide" = "pesticide",
   isParsed: boolean = false,
+  formatDates: boolean = false,
 ) => {
   try {
     // Convert buffers to base64
@@ -122,7 +140,7 @@ export const processImagesWithOpenAI_chatCompletions = async (
 
     // Gọi hàm qua client.chat.completions.create
     const response = await client.chat.completions.create({
-      model: "gemini-3.5-flash",
+      model: "gemini-2.5-pro",
       messages: [
         {
           role: "user",
@@ -139,9 +157,25 @@ export const processImagesWithOpenAI_chatCompletions = async (
       throw new Error("No content received from model.");
     }
 
+    let parsedResponse = isParsed ? JSON.parse(outputText) : outputText;
+
+    // Format dates if requested (independent of isParsed)
+    if (formatDates) {
+      // Parse if not already parsed
+      if (typeof parsedResponse === "string") {
+        parsedResponse = JSON.parse(parsedResponse);
+      }
+      // Format dates
+      parsedResponse = formatDatesInResponse(parsedResponse);
+      // Stringify back if isParsed was false
+      if (!isParsed) {
+        parsedResponse = JSON.stringify(parsedResponse);
+      }
+    }
+
     return {
       success: true,
-      response: isParsed ? JSON.parse(outputText) : outputText,
+      response: parsedResponse,
     };
   } catch (error) {
     console.error("OpenAI API Error:", error);
@@ -149,18 +183,18 @@ export const processImagesWithOpenAI_chatCompletions = async (
   }
 };
 
-export const testCallOpenAI = async () => {
-  const response = await client.chat.completions.create({
-    model: "gemini-2.5-flash",
-    messages: [
-      { role: "system", content: "You are a helpful assistant." },
-      {
-        role: "user",
-        content: "Explain to me how AI works",
-      },
-    ],
-  });
-  if (response.choices[0]) {
-    console.log(response.choices[0].message);
-  }
-};
+// export const testCallOpenAI = async () => {
+//   const response = await client.chat.completions.create({
+//     model: "gemini-2.5-flash",
+//     messages: [
+//       { role: "system", content: "You are a helpful assistant." },
+//       {
+//         role: "user",
+//         content: "Explain to me how AI works",
+//       },
+//     ],
+//   });
+//   if (response.choices[0]) {
+//     console.log(response.choices[0].message);
+//   }
+// };

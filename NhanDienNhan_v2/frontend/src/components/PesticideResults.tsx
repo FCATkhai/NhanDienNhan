@@ -7,8 +7,6 @@ import {
   getUnitLabel,
 } from "../utils/dataMapper";
 
-import { formatDateString, calculateExpiryDate } from "../utils/dateUtils";
-
 interface PesticideResultsProps {
   data: ProductInfo;
   images: File[];
@@ -33,14 +31,6 @@ export function PesticideResults({
   const confidenceScore =
     data.metadata?.overall_confidence ?? data.confidence_score ?? 0;
   const confidence = confidenceScore * 100;
-
-  const mfgDate = data.mfg_date ? formatDateString(data.mfg_date) : null;
-  const expDate = data.exp_date ? formatDateString(data.exp_date) : null;
-  let calculatedExpDate = null;
-  if (!expDate && mfgDate && data.exp_date) {
-    // Calculate expiry date if it's not already formatted
-    calculatedExpDate = calculateExpiryDate(mfgDate, data.exp_date);
-  }
 
   if (!data.success) {
     return (
@@ -146,7 +136,7 @@ export function PesticideResults({
       label: "Ngày sản xuất",
       key: "mfg_date",
       icon: "📅",
-      value: mfgDate,
+      value: data.mfg_date,
       isEmpty: isFieldEmpty(data.mfg_date),
       warning: getFieldWarning(data, "mfg_date"),
     },
@@ -154,7 +144,7 @@ export function PesticideResults({
       label: "Ngày hết hạn",
       key: "exp_date",
       icon: "⏰",
-      value: expDate || calculatedExpDate || data.exp_date,
+      value: data.exp_date,
       isEmpty: isFieldEmpty(data.exp_date),
       warning: getFieldWarning(data, "exp_date"),
     },
@@ -288,7 +278,10 @@ export function PesticideResults({
       )}
 
       {/* Dosage */}
-      {data.dosage ? (
+      {data.dosage &&
+      (typeof data.dosage === "string"
+        ? data.dosage.length > 0
+        : data.dosage.length > 0) ? (
         <div className="bg-linear-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-lg p-4">
           <h2 className="text-sm font-bold uppercase text-blue-900 mb-3">
             💊 Cách sử dụng & Liều lượng
@@ -304,14 +297,46 @@ export function PesticideResults({
               </p>
             </div>
           )}
-          {data.dosage.split("\n").map((line, index) => (
-            <p
-              key={index}
-              className="text-sm text-blue-900 leading-relaxed text-left"
-            >
-              {line}
-            </p>
-          ))}
+          {typeof data.dosage === "string" ? (
+            data.dosage.split("\n").map((line, index) => (
+              <p
+                key={index}
+                className="text-sm text-blue-900 leading-relaxed text-left"
+              >
+                {line}
+              </p>
+            ))
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-blue-100">
+                    <th className="border border-blue-300 px-4 py-2 text-left text-xs font-semibold text-blue-700">
+                      Đối tượng
+                    </th>
+                    <th className="border border-blue-300 px-4 py-2 text-left text-xs font-semibold text-blue-700">
+                      Liều lượng
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.dosage.map((item, index) => (
+                    <tr
+                      key={index}
+                      className={index % 2 === 0 ? "bg-white" : "bg-blue-50"}
+                    >
+                      <td className="border border-blue-200 px-4 py-2 text-xs font-medium text-gray-900">
+                        {item.target}
+                      </td>
+                      <td className="border border-blue-200 px-4 py-2 text-sm font-bold text-gray-900">
+                        {item.amount}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       ) : (
         <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
@@ -328,44 +353,77 @@ export function PesticideResults({
       )}
 
       {/* Active Ingredients */}
-      {data.active_ingredients && data.active_ingredients.length > 0 && (
-        <div>
-          <h2 className="text-sm font-bold uppercase text-gray-900 mb-3 pb-2 border-b">
-            🧪 Thành phần hoạt chất
-          </h2>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-orange-100">
-                  <th className="border border-orange-300 px-4 py-2 text-left text-xs font-semibold text-orange-700">
-                    Hoạt chất
-                  </th>
-                  <th className="border border-orange-300 px-4 py-2 text-left text-xs font-semibold text-orange-700">
-                    Hàm lượng
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.active_ingredients.map((ingredient, index) => (
-                  <tr
+      {data.ingredients &&
+        (typeof data.ingredients === "string"
+          ? data.ingredients.length > 0
+          : data.ingredients.length > 0) && (
+          <div>
+            <h2 className="text-sm font-bold uppercase text-gray-900 mb-3 pb-2 border-b">
+              🧪 Thành phần hoạt chất
+            </h2>
+            {typeof data.ingredients === "string" ? (
+              // If ingredients is a string, display like dosage
+              <div className="bg-linear-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-lg p-4">
+                {getFieldWarning(data, "ingredients") && (
+                  <div className="mb-3 pb-3 border-b border-orange-200">
+                    <p className="text-xs text-orange-700 font-semibold flex items-center gap-1">
+                      <AlertTriangle className="h-3 w-3" />
+                      {getFieldWarning(data, "ingredients")?.issue}
+                    </p>
+                    <p className="text-xs text-orange-700 mt-1">
+                      {getFieldWarning(data, "ingredients")?.message}
+                    </p>
+                  </div>
+                )}
+                {data.ingredients.split("\n").map((line, index) => (
+                  <p
                     key={index}
-                    className={index % 2 === 0 ? "bg-white" : "bg-orange-50"}
+                    className="text-sm text-orange-900 leading-relaxed text-left"
                   >
-                    <td className="border border-orange-200 px-4 py-2 text-xs font-medium text-gray-900">
-                      {ingredient.name}
-                    </td>
-                    <td className="border border-orange-200 px-4 py-2 text-sm font-bold text-gray-900">
-                      {ingredient.content}
-                    </td>
-                  </tr>
+                    {line}
+                  </p>
                 ))}
-              </tbody>
-            </table>
+              </div>
+            ) : (
+              // If ingredients is an array, display as table
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-orange-100">
+                      <th className="border border-orange-300 px-4 py-2 text-left text-xs font-semibold text-orange-700">
+                        Hoạt chất
+                      </th>
+                      <th className="border border-orange-300 px-4 py-2 text-left text-xs font-semibold text-orange-700">
+                        Hàm lượng
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.ingredients.map((ingredient, index) => (
+                      <tr
+                        key={index}
+                        className={
+                          index % 2 === 0 ? "bg-white" : "bg-orange-50"
+                        }
+                      >
+                        <td className="border border-orange-200 px-4 py-2 text-xs font-medium text-gray-900">
+                          {ingredient.name}
+                        </td>
+                        <td className="border border-orange-200 px-4 py-2 text-sm font-bold text-gray-900">
+                          {ingredient.content || "---"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
-        </div>
-      )}
-      {!data.active_ingredients ||
-        (data.active_ingredients.length === 0 && (
+        )}
+      {!data.ingredients ||
+        ((typeof data.ingredients === "string"
+          ? data.ingredients.length === 0
+          : data.ingredients.length === 0) && (
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
             <div className="flex items-start gap-2">
               <AlertTriangle className="h-4 w-4 text-orange-600 mt-0.5" />

@@ -100,10 +100,39 @@ const productInfo = parseProductInfo(response);
 ### uploadMultipleImagesForAnalysis
 Uploads multiple images to the backend for analysis.
 
+**Note**: This function automatically includes `parsed=true` and `formatDates=true` query parameters to request that the backend return parsed JSON responses with formatted dates.
+
 ```typescript
-const response = await uploadMultipleImagesForAnalysis(files);
+const response = await uploadMultipleImagesForAnalysis(files, "pesticide");
 const productData = parseProductInfo(response);
 ```
+
+**Response Date Format**: 
+- When `formatDates=true` is passed (default behavior):
+  - `mfg_date`: Formatted as `dd/mm/yyyy`
+  - `exp_date`: Formatted as `dd/mm/yyyy` (either an exact date or calculated from shelf life)
+- The backend automatically detects and formats various date input formats: `dd/mm/yy`, `dd mm yyyy`, `dd.mm.yyyy`, etc.
+- If `exp_date` is a shelf life duration (e.g., "18 tháng", "2 năm"), the backend calculates the expiry date from the manufacturing date
+
+---
+
+## Date Handling
+
+### Date Processing (Backend)
+The backend processes dates through the following flow:
+1. Receives raw product information from OpenAI
+2. Detects date fields: `mfg_date` and `exp_date`
+3. Formats dates: `mfg_date` to dd/mm/yyyy format
+4. Handles shelf life: If `exp_date` contains duration keywords ("tháng", "năm", "ngày", "tuần"), calculates expiry date from manufacturing date
+5. Returns formatted response to frontend
+
+### Date Formats Supported
+- **Input formats**: `dd/mm/yy`, `dd mm yy`, `dd/mm/yyyy`, `dd mm yyyy`, `dd.mm.yy`, `dd.mm.yyyy`, `dd-mm-yy`, `dd-mm-yyyy`
+- **Output format**: `dd/mm/yyyy`
+- **Shelf life formats**: 
+  - Vietnamese: "18 tháng" (months), "2 năm" (years), "30 ngày" (days), "4 tuần" (weeks)
+  - English: "18 months", "2 years", "30 days", "4 weeks"
+  - Can include descriptive text: "18 tháng kể từ ngày sản xuất"
 
 ---
 

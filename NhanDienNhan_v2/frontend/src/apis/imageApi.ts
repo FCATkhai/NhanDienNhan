@@ -29,14 +29,14 @@ export interface ProductInfo {
   exp_date?: string;
   form_type?: string;
   net_unit?: string;
+  ingredients?: Array<{ name: string; content: string }> | string;
   // Pesticide fields
   product_name?: string;
   product_type?: string;
   manufacturer?: string;
   registration_number?: string;
-  active_ingredients?: Array<{ name: string; content: string }>;
   uses?: string;
-  dosage?: string;
+  dosage?: Array<{ target: string; amount: string }> | string;
   target_crops?: string[];
   target_pests?: string[];
   pre_harvest_interval_days?: number;
@@ -44,7 +44,6 @@ export interface ProductInfo {
   variant_code?: string;
   species?: string;
   net_content?: string;
-  ingredients?: string;
   nutrition_facts?: Array<{ name: string; value: string; unit?: string }>;
   feeding_guide?: {
     code?: string;
@@ -202,6 +201,8 @@ export const uploadMultipleImagesForAnalysis = async (
   try {
     const url = new URL(`${API_BASE_URL}/api/image/analyze`);
     url.searchParams.append("category", category);
+    url.searchParams.append("parsed", "true");
+    url.searchParams.append("formatDates", "true");
 
     const response = await fetch(url.toString(), {
       method: "POST",

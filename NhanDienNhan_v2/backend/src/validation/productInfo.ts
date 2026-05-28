@@ -113,11 +113,11 @@ const BaseProductDataSchema = z.object({
     .nullable()
     .describe(`Quy cách đóng gói: ${Object.values(packageMap).join(", ")}`),
   uses: z.string().nullable().describe("Công dụng (nếu có)"),
-  mfg_date: z.string().nullable().describe("Ngày sản xuất"),
+  mfg_date: z.string().nullable().describe("Ngày sản xuất (NSX)"),
   exp_date: z
     .string()
     .describe(
-      "Hạn sử dụng, nếu chỉ ghi khoảng thời gian (VD: '12 tháng') thì trả về những gì có trên nhãn",
+      "Hạn sử dụng (HSD), nếu chỉ ghi khoảng thời gian (VD: '12 tháng') thì trả về những gì có trên nhãn",
     ),
 });
 
@@ -130,24 +130,48 @@ const BaseProductDataSchema = z.object({
 // --- THUỐC BẢO VỆ THỰC VẬT (PESTICIDE) ---
 
 export const ActiveIngredientSchema = z.object({
-  name: z.string().describe("Tên hoạt chất"),
-  content: z.string().describe("Hàm lượng hoạt chất"),
+  name: z
+    .string()
+    .describe(
+      "Tên thành phần (bao gồm cả hoạt chất, chất mang, phụ gia, độ ẩm...)",
+    ),
+  content: z
+    .string()
+    .nullable()
+    .describe("Hàm lượng tương ứng (VD: 50%, 1kg, vừa đủ)"),
 });
 
 export const PesticideDataSchema = BaseProductDataSchema.extend({
   category: z.literal("pesticide").describe("Danh mục sản phẩm"),
   product_type: z
-    .string()
+    .enum(["thuốc nông dược", "thuốc thuỷ sản", "khác"])
     .nullable()
-    .describe(
-      "Loại sản phẩm, ví dụ: thuốc bảo vệ thực vật, thuốc trị bệnh thuỷ sản...",
-    ),
+    .describe("Loại sản phẩm"),
   registration_number: z.string().nullable().describe("Số đăng ký"),
-  active_ingredients: z
+  ingredients: z
     .array(ActiveIngredientSchema)
     .nullable()
-    .describe("Danh sách hoạt chất"),
-  dosage: z.string().nullable().describe("Liều lượng sử dụng"),
+    .describe("Danh sách tất cả các thành phần có trong sản phẩm"),
+  dosage: z
+    .union([
+      z
+        .array(
+          z.object({
+            target: z.string().describe("Mục đích, đối tượng áp dụng"),
+            amount: z.string().describe("Liều lượng sử dụng"),
+          }),
+        )
+        .describe(
+          "Liều lượng sử dụng chi tiết theo từng mục đích/đối tượng, nếu có.",
+        ),
+      z
+        .string()
+        .describe(
+          "Liều sử dung chung nếu không có hướng dẫn riêng cho từng đối tượng",
+        ),
+    ])
+    .nullable()
+    .describe("Liều lượng sử dụng"),
   target_crops: z
     .array(z.string())
     .nullable()
