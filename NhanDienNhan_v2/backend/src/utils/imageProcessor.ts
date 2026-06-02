@@ -44,7 +44,7 @@ export const processImagesWithOpenAI = async (
     interface ImageInput {
       type: "input_image";
       image_url: string;
-      detail: "auto";
+      detail: "auto" | "low";
     }
 
     const imageInputs: ImageInput[] = base64Images.map(
@@ -140,7 +140,7 @@ export const processImagesWithOpenAI_chatCompletions = async (
 
     // Gọi hàm qua client.chat.completions.create
     const response = await client.chat.completions.create({
-      model: "gemini-2.5-pro",
+      model: "gemini-3.1-flash-lite",
       messages: [
         {
           role: "user",
@@ -183,18 +183,104 @@ export const processImagesWithOpenAI_chatCompletions = async (
   }
 };
 
-// export const testCallOpenAI = async () => {
-//   const response = await client.chat.completions.create({
-//     model: "gemini-2.5-flash",
-//     messages: [
-//       { role: "system", content: "You are a helpful assistant." },
-//       {
-//         role: "user",
-//         content: "Explain to me how AI works",
-//       },
-//     ],
-//   });
-//   if (response.choices[0]) {
-//     console.log(response.choices[0].message);
-//   }
-// };
+export const processImagesTest = async (
+  imageBuffers: Buffer[],
+  imageTypes: string[],
+  prompt: string = "what's in these images?",
+  schemaType: "fish_feed" | "pesticide" | "" = "",
+  isParsed: boolean = false,
+  formatDates: boolean = false,
+) => {
+  try {
+    // Convert buffers to base64
+    const base64Images = imageBuffers.map((buffer) =>
+      buffer.toString("base64"),
+    );
+
+    // Map MIME types to data URL prefixes
+    const mimeTypeMap: { [key: string]: string } = {
+      "image/jpeg": "data:image/jpeg;base64,",
+      "image/png": "data:image/png;base64,",
+      "image/gif": "data:image/gif;base64,",
+      "image/webp": "data:image/webp;base64,",
+    };
+
+    // Định dạng chuẩn của OpenAI Chat Completions cho hình ảnh
+    const imageInputs = base64Images.map((base64Image, index) => ({
+      type: "image_url" as const,
+      image_url: {
+        url: `${mimeTypeMap[imageTypes[index] as string] || "data:image/jpeg;base64,"}${base64Image}`,
+        detail: "auto" as const,
+      },
+    }));
+
+    // Lựa chọn schema dựa trên tham số
+    let targetSchema = null;
+    if (schemaType === "fish_feed") {
+      targetSchema = FishFeedResponseSchema;
+    } else if (schemaType === "pesticide") {
+      targetSchema = PesticideResponseSchema;
+    }
+
+    // Gọi hàm qua client.chat.completions.create
+    const response = await client.chat.completions.create({
+      model: "gpt-4.1-mini",
+      messages: [
+        {
+          role: "user",
+          content: [{ type: "text", text: prompt }, ...imageInputs],
+        },
+      ],
+      // Sử dụng zodResponseFormat để ép API trả về JSON đúng với schema
+      ...(targetSchema && {
+        response_format: zodResponseFormat(targetSchema, "schema_name"),
+      }),
+    });
+
+    const outputText = response.choices[0]?.message?.content;
+
+    if (!outputText) {
+      throw new Error("No content received from model.");
+    }
+
+    let parsedResponse = isParsed ? JSON.parse(outputText) : outputText;
+
+    // Format dates if requested (independent of isParsed)
+    if (formatDates) {
+      // Parse if not already parsed
+      if (typeof parsedResponse === "string") {
+        parsedResponse = JSON.parse(parsedResponse);
+      }
+      // Format dates
+      parsedResponse = formatDatesInResponse(parsedResponse);
+      // Stringify back if isParsed was false
+      if (!isParsed) {
+        parsedResponse = JSON.stringify(parsedResponse);
+      }
+    }
+
+    return {
+      success: true,
+      response: parsedResponse,
+    };
+  } catch (error) {
+    console.error("OpenAI API Error:", error);
+    throw error;
+  }
+};
+
+export const testCallOpenAI = async () => {
+  const response = await client.chat.completions.create({
+    model: "gpt-4.1-mini",
+    messages: [
+      { role: "system", content: "You are a helpful assistant." },
+      {
+        role: "user",
+        content: "bạn là model AI nào? Hãy giới thiệu về mình bằng tiếng Việt.",
+      },
+    ],
+  });
+  if (response.choices[0]) {
+    console.log(response.choices[0].message);
+  }
+};

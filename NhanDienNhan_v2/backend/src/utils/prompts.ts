@@ -29,7 +29,8 @@ QUY TẮC TRÍCH XUẤT (TUYỆT ĐỐI TUÂN THỦ):
    - Hãy quét toàn bộ khu vực lân cận (bên phải, phía dưới, hoặc dòng kế tiếp ngay bên dưới chữ NSX) để tìm cụm số ngày tháng tương ứng.
 
 QUY TẮC BÁO CÁO CẢNH BÁO (REVIEW WARNINGS):
-Đối với các trường dữ liệu, nếu bạn cảm thấy không trích xuất được do ảnh mờ, chói sáng, bị che khuất hoặc có watermark (chữ chìm) làm mất nét chữ, hãy để giá trị là null và thêm đường dẫn của trường đó vào mảng review_warnings trong metadata. Nếu tự tin, hãy giữ mảng review_warnings trống.
+- Đối với các trường dữ liệu, nếu bạn cảm thấy không trích xuất được do ảnh mờ, chói sáng, bị che khuất hoặc có watermark (chữ chìm) làm mất nét chữ, hãy để giá trị là null và thêm đường dẫn của trường đó vào mảng review_warnings trong metadata. Nếu tự tin, hãy giữ mảng review_warnings trống.
+- Lỗi toàn cục (Ảnh nằm ngang, lóa sáng toàn bộ ảnh): Thêm một object vào review_warnings với "field" = null, "issue" = 'IMAGE_ROTATED' hoặc mã lỗi phù hợp, và giải thích trong "message".
 
 XỬ LÝ ẢNH LỖI NẶNG:
 Nếu ảnh quá mờ, không đọc được chữ, không phải sản phẩm thuốc BVTV/thủy sản hoặc không có nhãn:
@@ -40,6 +41,11 @@ Nếu ảnh quá mờ, không đọc được chữ, không phải sản phẩm 
 
 Trả về JSON thoả mãn schema, chỉ trả về JSON, không giải thích gì thêm.
 `;
+
+export const test_prompt = `
+Dựa vào hình ảnh, hãy trích toàn bộ thông tin được in trên nhãn. Hãy cố gắng trích xuất càng nhiều thông tin càng tốt.
+`;
+
 // 2. CHỈ TRÍCH XUẤT NHỮNG GÌ NHÌN THẤY: Không tự ý suy luận, nội suy hoặc đoán dữ liệu bị thiếu.
 
 //tight prompt
@@ -162,6 +168,7 @@ Bạn BẮT BUỘC phải thêm thông tin vào mảng \`review_warnings\` trong
 - BỊ CHE KHUẤT/GẠCH XÓA: Bảng dữ liệu hoặc dòng dữ liệu cần trích xuất bị gạch chéo, bôi màu, hoặc rách nhãn. (issue: "OBSCURED_DATA")
 - MỜ/CHÓI SÁNG: Chữ không thể đọc chắc chắn. (issue: "BLURRY_TEXT")
 Nếu gặp các tình huống này, hãy để giá trị của trường đó là null, và thêm tên trường (ví dụ: "nutrition_facts" hoặc "feeding_guide") vào \`review_warnings\` kèm giải thích chi tiết.
+- Lỗi toàn cục (Ảnh nằm ngang, lóa sáng toàn bộ ảnh): Thêm một object vào review_warnings với "field" = null, "issue" = 'IMAGE_ROTATED' hoặc mã lỗi phù hợp, và giải thích trong "message".
 
 XỬ LÝ ẢNH LỖI NẶNG:
 Nếu ảnh quá mờ toàn bộ, không đọc được bất kỳ chữ nào, không có nhãn, hoặc sai danh mục:

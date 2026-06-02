@@ -3,8 +3,9 @@ import multer from "multer";
 import {
   processImagesWithOpenAI,
   processImagesWithOpenAI_chatCompletions,
+  processImagesTest,
 } from "../utils/imageProcessor";
-import { pesticide_prompt, feed_prompt } from "../utils/prompts";
+import { pesticide_prompt, feed_prompt, test_prompt } from "../utils/prompts";
 
 const router = express.Router();
 
@@ -89,7 +90,12 @@ router.post("/analyze", async (req: Request, res: Response) => {
       req.query.category === "fish_feed" ? "fish_feed" : "pesticide";
     const isParsed = req.query.parsed === "true";
     const formatDates = req.query.formatDates === "true";
-    console.log("Processing images for category:", schemaType, "formatDates:", formatDates);
+    console.log(
+      "Processing images for category:",
+      schemaType,
+      "formatDates:",
+      formatDates,
+    );
 
     const files = req.files as Express.Multer.File[];
 
@@ -106,6 +112,61 @@ router.post("/analyze", async (req: Request, res: Response) => {
       schemaType,
       isParsed,
       formatDates,
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        response: result.response,
+        totalImages: files.length,
+      },
+    });
+  } catch (error: any) {
+    console.error("Image analysis error:", error);
+    return res.status(500).json({
+      success: false,
+      error: error.message || "Failed to analyze images",
+    });
+  }
+});
+
+// POST endpoint for testing with custom prompt
+router.post("/test", (req: Request, res: Response, next: NextFunction) => {
+  upload.array("images", 10)(req, res, (err) => {
+    if (err) {
+      return handleMulterError(err, req, res, next);
+    }
+    next();
+  });
+});
+
+router.post("/test", async (req: Request, res: Response) => {
+  try {
+    // Check if files were uploaded
+    if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error:
+          "No image files provided. Make sure to send files with field name 'images'",
+      });
+    }
+    const schemaType = "";
+    console.log("Processing images for category:", schemaType);
+
+    const files = req.files as Express.Multer.File[];
+
+    console.log("Files received:", files.length);
+
+    // const prompt = schemaType === "fish_feed" ? feed_prompt : pesticide_prompt;
+    const prompt = test_prompt;
+    const imageBuffers = files.map((file) => file.buffer);
+    const imageTypes = files.map((file) => file.mimetype);
+
+    const result = await processImagesTest(
+      imageBuffers,
+      imageTypes,
+      prompt,
+      schemaType,
     );
 
     return res.status(200).json({

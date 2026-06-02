@@ -5,11 +5,16 @@ import { z } from "zod";
 // ==========================================
 
 export const ReviewWarningSchema = z.object({
-  field: z.string().describe("Tên trường bị nghi ngờ"),
+  field: z
+    .string()
+    .nullable()
+    .describe(
+      "Tên trường bị nghi ngờ. ĐỂ NULL nếu đây là cảnh báo chung cho toàn bộ bức ảnh (VD: ảnh bị xoay ngang, lóa sáng toàn bộ).",
+    ),
   issue: z
     .string()
     .describe(
-      "Phân loại lỗi (VD: 'TEXT_BLURRY', 'TABLE_UNCLEAR', 'AMBIGUOUS_VALUE')",
+      "Phân loại lỗi (VD: 'TEXT_BLURRY', 'TABLE_UNCLEAR', 'AMBIGUOUS_VALUE', 'IMAGE_ROTATED')",
     ),
   message: z
     .string()
@@ -25,7 +30,7 @@ export const MetadataSchema = z.object({
   review_warnings: z
     .array(ReviewWarningSchema)
     .describe(
-      "Danh sách các trường có độ tin cậy thấp cần con người xem lại. Nếu tất cả đều rõ ràng, trả về mảng rỗng []",
+      "Danh sách các trường không rõ ràng cần con người xem lại. Nếu tất cả đều rõ ràng, trả về mảng rỗng []",
     ),
 });
 
@@ -130,11 +135,7 @@ const BaseProductDataSchema = z.object({
 // --- THUỐC BẢO VỆ THỰC VẬT (PESTICIDE) ---
 
 export const ActiveIngredientSchema = z.object({
-  name: z
-    .string()
-    .describe(
-      "Tên thành phần (bao gồm cả hoạt chất, chất mang, phụ gia, độ ẩm...)",
-    ),
+  name: z.string().describe("Tên thành phần"),
   content: z
     .string()
     .nullable()
@@ -184,7 +185,9 @@ export const PesticideDataSchema = BaseProductDataSchema.extend({
     .number()
     .int()
     .nullable()
-    .describe("Thời gian cách ly trước thu hoạch"),
+    .describe(
+      "Thời gian cách ly trước thu hoạch, thường được in trên nhãn với nội dung 'ngừng sử dụng X ngày trước khi thu hoạch', có thể được tách riêng thành mục riêng hoặc nằm trong phần hướng dẫn sử dụng chung. Nếu có khoảng thời gian như '7-10 ngày', thì trả về ngày lớn nhất (VD: 10)",
+    ),
 });
 
 export const PesticideResponseSchema = BaseResponseSchema.extend({
