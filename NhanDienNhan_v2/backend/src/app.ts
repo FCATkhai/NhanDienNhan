@@ -21,7 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 // Image processing routes
 app.use("/api/image", imageRoutes);
 app.get("/", (req, res) => {
-  res.send("Welcome to the Image Analysis API");
+  res.send("Welcome to the Image Analysis API\n");
 });
 
 import { testCallOpenAI } from "@backend/utils/imageProcessor";

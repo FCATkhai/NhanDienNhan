@@ -1,11 +1,17 @@
 import express, { Request, Response, NextFunction } from "express";
 import multer from "multer";
+import { SchemaType } from "../validation/type";
 import {
   processImagesWithOpenAI,
   processImagesWithOpenAI_chatCompletions,
   processImagesTest,
 } from "../utils/imageProcessor";
-import { pesticide_prompt, feed_prompt, test_prompt } from "../utils/prompts";
+import {
+  pesticide_prompt,
+  feed_prompt,
+  fertilizer_prompt,
+  test_prompt,
+} from "../utils/prompts";
 
 const router = express.Router();
 
@@ -86,8 +92,7 @@ router.post("/analyze", async (req: Request, res: Response) => {
           "No image files provided. Make sure to send files with field name 'images'",
       });
     }
-    const schemaType =
-      req.query.category === "fish_feed" ? "fish_feed" : "pesticide";
+    const schemaType: SchemaType = req.query.category as SchemaType;
     const isParsed = req.query.parsed === "true";
     const formatDates = req.query.formatDates === "true";
     console.log(
@@ -101,11 +106,25 @@ router.post("/analyze", async (req: Request, res: Response) => {
 
     console.log("Files received:", files.length);
 
-    const prompt = schemaType === "fish_feed" ? feed_prompt : pesticide_prompt;
+    let prompt = "";
+    switch (schemaType) {
+      case "fish_feed":
+        prompt = feed_prompt;
+        break;
+      case "pesticide":
+        prompt = pesticide_prompt;
+        break;
+      case "fertilizer":
+        prompt = fertilizer_prompt;
+        break;
+      default:
+        prompt = pesticide_prompt; // default to pesticide prompt if category is missing or unrecognized
+    }
+
     const imageBuffers = files.map((file) => file.buffer);
     const imageTypes = files.map((file) => file.mimetype);
 
-    const result = await processImagesWithOpenAI(
+    const result = await processImagesWithOpenAI_chatCompletions(
       imageBuffers,
       imageTypes,
       prompt,

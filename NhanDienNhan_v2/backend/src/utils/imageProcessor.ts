@@ -1,9 +1,11 @@
 import OpenAI from "openai";
 import dotenv from "dotenv";
 import { zodTextFormat, zodResponseFormat } from "openai/helpers/zod";
+import { SchemaType } from "@backend/validation/type";
 import {
   FishFeedResponseSchema,
   PesticideResponseSchema,
+  FertilizerResponseSchema,
 } from "@backend/validation/productInfo";
 import { formatDatesInResponse } from "./dateProcessor";
 
@@ -19,11 +21,19 @@ const client = new OpenAI({
 //   baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
 // });
 
+const schemaTypeToModelMap: {
+  [key in SchemaType]: string;
+} = {
+  fish_feed: "gpt-4.1-mini",
+  pesticide: "gemini-3.1-flash-lite-preview",
+  fertilizer: "gemini-3.1-flash-lite-preview",
+};
+
 export const processImagesWithOpenAI = async (
   imageBuffers: Buffer[],
   imageTypes: string[],
   prompt: string = "what's in these images?",
-  schemaType: "fish_feed" | "pesticide" = "pesticide",
+  schemaType: SchemaType = "pesticide",
   isParsed: boolean = false,
   formatDates: boolean = false,
 ) => {
@@ -56,7 +66,7 @@ export const processImagesWithOpenAI = async (
     );
 
     const response = await client.responses.parse({
-      model: "gpt-4.1-mini",
+      model: schemaTypeToModelMap[schemaType],
       input: [
         {
           role: "user",
@@ -67,7 +77,9 @@ export const processImagesWithOpenAI = async (
         format: zodTextFormat(
           schemaType === "fish_feed"
             ? FishFeedResponseSchema
-            : PesticideResponseSchema,
+            : schemaType === "fertilizer"
+              ? FertilizerResponseSchema
+              : PesticideResponseSchema,
           "schema",
         ),
       },
@@ -105,7 +117,7 @@ export const processImagesWithOpenAI_chatCompletions = async (
   imageBuffers: Buffer[],
   imageTypes: string[],
   prompt: string = "what's in these images?",
-  schemaType: "fish_feed" | "pesticide" = "pesticide",
+  schemaType: SchemaType = "pesticide",
   isParsed: boolean = false,
   formatDates: boolean = false,
 ) => {
@@ -136,11 +148,13 @@ export const processImagesWithOpenAI_chatCompletions = async (
     const targetSchema =
       schemaType === "fish_feed"
         ? FishFeedResponseSchema
-        : PesticideResponseSchema;
+        : schemaType === "fertilizer"
+          ? FertilizerResponseSchema
+          : PesticideResponseSchema;
 
     // Gọi hàm qua client.chat.completions.create
     const response = await client.chat.completions.create({
-      model: "gemini-3.1-flash-lite",
+      model: schemaTypeToModelMap[schemaType],
       messages: [
         {
           role: "user",
@@ -187,7 +201,7 @@ export const processImagesTest = async (
   imageBuffers: Buffer[],
   imageTypes: string[],
   prompt: string = "what's in these images?",
-  schemaType: "fish_feed" | "pesticide" | "" = "",
+  schemaType: SchemaType | "" = "pesticide",
   isParsed: boolean = false,
   formatDates: boolean = false,
 ) => {
@@ -220,6 +234,8 @@ export const processImagesTest = async (
       targetSchema = FishFeedResponseSchema;
     } else if (schemaType === "pesticide") {
       targetSchema = PesticideResponseSchema;
+    } else if (schemaType === "fertilizer") {
+      targetSchema = FertilizerResponseSchema;
     }
 
     // Gọi hàm qua client.chat.completions.create

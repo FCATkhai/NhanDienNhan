@@ -105,7 +105,12 @@ const BaseProductDataSchema = z.object({
     .nullable()
     .describe("Dạng vật lý/thương phẩm của sản phẩm (bột, nước, viên...)"),
   manufacturer: z.string().nullable().describe("Nhà sản xuất"),
-  product_name: z.string().nullable().describe("Tên sản phẩm"),
+  product_name: z
+    .string()
+    .nullable()
+    .describe(
+      "Tên đầy đủ của sản phẩm. BẮT BUỘC bao gồm cả tên thương mại chính và tên gợi nhớ/tên phụ/biệt danh marketing in trên nhãn nếu có. Nếu hai phần này nằm tách biệt, hãy nối chúng lại bằng dấu gạch ngang ' - '. (Ví dụ: 'HAIHAMEC 3.6EC - SƯ TỬ ĐỎ')",
+    ),
   net_content: z.string().nullable().describe("Giá trị định lượng (số)"),
   net_unit: z
     .enum(Object.keys(unitMap) as (keyof typeof unitMap)[])
@@ -134,7 +139,7 @@ const BaseProductDataSchema = z.object({
 
 // --- THUỐC BẢO VỆ THỰC VẬT (PESTICIDE) ---
 
-export const ActiveIngredientSchema = z.object({
+export const IngredientSchema = z.object({
   name: z.string().describe("Tên thành phần"),
   content: z
     .string()
@@ -145,12 +150,12 @@ export const ActiveIngredientSchema = z.object({
 export const PesticideDataSchema = BaseProductDataSchema.extend({
   category: z.literal("pesticide").describe("Danh mục sản phẩm"),
   product_type: z
-    .enum(["thuốc nông dược", "thuốc thuỷ sản", "khác"])
+    .enum(["hoa_hoc", "sinh_hoc"])
     .nullable()
-    .describe("Loại sản phẩm"),
+    .describe("Loại sản phẩm dựa trên thành phần"),
   registration_number: z.string().nullable().describe("Số đăng ký"),
   ingredients: z
-    .array(ActiveIngredientSchema)
+    .array(IngredientSchema)
     .nullable()
     .describe("Danh sách tất cả các thành phần có trong sản phẩm"),
   dosage: z
@@ -194,6 +199,60 @@ export const PesticideResponseSchema = BaseResponseSchema.extend({
   data: PesticideDataSchema.nullable().describe(
     "Dữ liệu sản phẩm thuốc BVTV/thuốc thuỷ sản",
   ),
+});
+
+// --- PHÂN BÓN (FERTILIZER) ---
+
+export const FertilizerDataSchema = BaseProductDataSchema.extend({
+  category: z.literal("fertilizer").describe("Danh mục sản phẩm"),
+  product_type: z
+    .enum(["vo_co", "huu_co"])
+    .nullable()
+    .describe("Loại sản phẩm dựa trên thành phần"),
+  registration_number: z.string().nullable().describe("Số đăng ký"),
+  ingredients: z
+    .array(IngredientSchema)
+    .nullable()
+    .describe("Danh sách tất cả các thành phần có trong sản phẩm"),
+  dosage: z
+    .union([
+      z
+        .array(
+          z.object({
+            target: z.string().describe("Mục đích, đối tượng áp dụng"),
+            amount: z.string().describe("Liều lượng sử dụng"),
+          }),
+        )
+        .describe(
+          "Liều lượng sử dụng chi tiết theo từng mục đích/đối tượng, nếu có.",
+        ),
+      z
+        .string()
+        .describe(
+          "Liều sử dung chung nếu không có hướng dẫn riêng cho từng đối tượng",
+        ),
+    ])
+    .nullable()
+    .describe("Liều lượng sử dụng"),
+  target_crops: z
+    .array(z.string())
+    .nullable()
+    .describe("Danh sách cây trồng/loài cá áp dụng"),
+  target_pests: z
+    .array(z.string())
+    .nullable()
+    .describe("Danh sách bệnh/dịch hại"),
+  pre_harvest_interval_days: z
+    .number()
+    .int()
+    .nullable()
+    .describe(
+      "Thời gian cách ly trước thu hoạch, thường được in trên nhãn với nội dung 'ngừng sử dụng X ngày trước khi thu hoạch', có thể được tách riêng thành mục riêng hoặc nằm trong phần hướng dẫn sử dụng chung. Nếu có khoảng thời gian như '7-10 ngày', thì trả về ngày lớn nhất (VD: 10)",
+    ),
+});
+
+export const FertilizerResponseSchema = BaseResponseSchema.extend({
+  data: FertilizerDataSchema.nullable().describe("Dữ liệu sản phẩm phân bón"),
 });
 
 // --- THỨC ĂN THỦY SẢN (FISH FEED) ---
