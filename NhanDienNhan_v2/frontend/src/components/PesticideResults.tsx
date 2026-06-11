@@ -100,11 +100,11 @@ export function PesticideResults({
     },
     {
       label: "Nhà sản xuất",
-      key: "manufacturer",
+      key: "registrant",
       icon: "🏭",
-      value: data.manufacturer,
-      isEmpty: isFieldEmpty(data.manufacturer),
-      warning: getFieldWarning(data, "manufacturer"),
+      value: data.registrant,
+      isEmpty: isFieldEmpty(data.registrant),
+      warning: getFieldWarning(data, "registrant"),
     },
     {
       label: "Số đăng ký",

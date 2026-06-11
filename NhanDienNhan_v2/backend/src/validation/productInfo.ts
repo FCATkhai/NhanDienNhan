@@ -104,7 +104,7 @@ const BaseProductDataSchema = z.object({
     .enum(["bot", "nuoc", "vien", "khac"])
     .nullable()
     .describe("Dạng vật lý/thương phẩm của sản phẩm (bột, nước, viên...)"),
-  manufacturer: z.string().nullable().describe("Nhà sản xuất"),
+  registrant: z.string().nullable().describe("Công ty đăng ký"),
   product_name: z
     .string()
     .nullable()
@@ -153,7 +153,10 @@ export const PesticideDataSchema = BaseProductDataSchema.extend({
     .enum(["hoa_hoc", "sinh_hoc"])
     .nullable()
     .describe("Loại sản phẩm dựa trên thành phần"),
-  registration_number: z.string().nullable().describe("Số đăng ký"),
+  registration_number: z
+    .string()
+    .nullable()
+    .describe("Số đăng ký, thường có dạng: (số)/CNĐKT-BVTV"),
   ingredients: z
     .array(IngredientSchema)
     .nullable()
@@ -209,7 +212,10 @@ export const FertilizerDataSchema = BaseProductDataSchema.extend({
     .enum(["vo_co", "huu_co"])
     .nullable()
     .describe("Loại sản phẩm dựa trên thành phần"),
-  registration_number: z.string().nullable().describe("Số đăng ký"),
+  registration_number: z
+    .string()
+    .nullable()
+    .describe("Mã số phân bón, thường là dãy 4-5 số"),
   ingredients: z
     .array(IngredientSchema)
     .nullable()
@@ -237,11 +243,7 @@ export const FertilizerDataSchema = BaseProductDataSchema.extend({
   target_crops: z
     .array(z.string())
     .nullable()
-    .describe("Danh sách cây trồng/loài cá áp dụng"),
-  target_pests: z
-    .array(z.string())
-    .nullable()
-    .describe("Danh sách bệnh/dịch hại"),
+    .describe("Danh sách cây trồng áp dụng"),
   pre_harvest_interval_days: z
     .number()
     .int()

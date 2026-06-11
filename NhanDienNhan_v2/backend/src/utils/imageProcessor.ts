@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import dotenv from "dotenv";
 import { zodTextFormat, zodResponseFormat } from "openai/helpers/zod";
-import { SchemaType } from "@backend/validation/type";
+import { SchemaType } from "@backend/validation/types";
 import {
   FishFeedResponseSchema,
   PesticideResponseSchema,

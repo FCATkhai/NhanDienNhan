@@ -33,7 +33,7 @@ export interface ProductInfo {
   // Pesticide fields
   product_name?: string;
   product_type?: string;
-  manufacturer?: string;
+  registrant?: string;
   registration_number?: string;
   uses?: string;
   dosage?: Array<{ target: string; amount: string }> | string;

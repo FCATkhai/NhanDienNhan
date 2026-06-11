@@ -1,17 +1,18 @@
 import express, { Request, Response, NextFunction } from "express";
 import multer from "multer";
-import { SchemaType } from "../validation/type";
+import { SchemaType } from "../validation/types.js";
 import {
   processImagesWithOpenAI,
   processImagesWithOpenAI_chatCompletions,
   processImagesTest,
-} from "../utils/imageProcessor";
+} from "../utils/imageProcessor.js";
 import {
   pesticide_prompt,
   feed_prompt,
   fertilizer_prompt,
   test_prompt,
-} from "../utils/prompts";
+} from "../utils/prompts.js";
+import { enrichWithSearch } from "../services/search/index.js";
 
 const router = express.Router();
 
@@ -95,11 +96,15 @@ router.post("/analyze", async (req: Request, res: Response) => {
     const schemaType: SchemaType = req.query.category as SchemaType;
     const isParsed = req.query.parsed === "true";
     const formatDates = req.query.formatDates === "true";
+    // New optional flag: ?search=true enables online database enrichment
+    const searchEnabled = req.query.search === "true";
     console.log(
       "Processing images for category:",
       schemaType,
       "formatDates:",
       formatDates,
+      "searchEnabled:",
+      searchEnabled,
     );
 
     const files = req.files as Express.Multer.File[];
@@ -133,11 +138,40 @@ router.post("/analyze", async (req: Request, res: Response) => {
       formatDates,
     );
 
+    // ── Online search enrichment (optional) ──────────────────────
+    // Only runs when ?search=true and category supports it.
+    // Failures are handled inside enrichWithSearch and never propagate.
+    const RETURN_BOTH_RAW_AND_ENRICHED = true; // Set to true to include both original and enriched data in response
+    let responseData = result.response;
+    let searchMetadata: object | undefined;
+
+    if (
+      searchEnabled &&
+      (schemaType === "pesticide" || schemaType === "fertilizer")
+    ) {
+      // Ensure we have a parsed object to work with
+      const extractionObject: object =
+        typeof responseData === "string"
+          ? (JSON.parse(responseData) as object)
+          : (responseData as object);
+
+      const enrichment = await enrichWithSearch(extractionObject, schemaType);
+      searchMetadata = enrichment.searchMetadata;
+
+      // Re-serialize to match the original isParsed contract
+      responseData = isParsed
+        ? enrichment.enrichedResult
+        : JSON.stringify(enrichment.enrichedResult);
+    }
+    // ─────────────────────────────────────────────────────────────
+
     return res.status(200).json({
       success: true,
       data: {
-        response: result.response,
+        response: responseData,
+        ...(RETURN_BOTH_RAW_AND_ENRICHED ? { raw: result.response } : {}),
         totalImages: files.length,
+        ...(searchMetadata ? { search_metadata: searchMetadata } : {}),
       },
     });
   } catch (error: any) {

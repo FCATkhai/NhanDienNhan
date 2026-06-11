@@ -1,6 +1,6 @@
 node_modules
 dist
-speed test
+test
 npm-debug.log
 .env
 .env.local
@@ -13,3 +13,5 @@ README.md
 *.log
 coverage
 .DS_Store
+prettier.config.ts
+.prettierignore
