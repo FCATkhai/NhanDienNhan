@@ -167,7 +167,8 @@ export const PesticideDataSchema = BaseProductDataSchema.extend({
         .array(
           z.object({
             target: z.string().describe("Mục đích, đối tượng áp dụng"),
-            amount: z.string().describe("Liều lượng sử dụng"),
+            instruction: z.string().describe("Hướng dẫn sử dụng"),
+            // khi chỉ muốn lấy liều lượng sử dụng thì chỉ cần amount: z.string().describe("Liều lượng sử dụng")
           }),
         )
         .describe(
@@ -176,7 +177,7 @@ export const PesticideDataSchema = BaseProductDataSchema.extend({
       z
         .string()
         .describe(
-          "Liều sử dung chung nếu không có hướng dẫn riêng cho từng đối tượng",
+          "Liều sử dụng chung nếu không có hướng dẫn riêng cho từng đối tượng",
         ),
     ])
     .nullable()
@@ -215,27 +216,32 @@ export const FertilizerDataSchema = BaseProductDataSchema.extend({
   registration_number: z
     .string()
     .nullable()
-    .describe("Mã số phân bón, thường là dãy 4-5 số"),
+    .describe(
+      "Mã số phân bón, thường là dãy 4-5 số. Ví dụ: Mã số phân bón/MSPB: 10699",
+    ),
   ingredients: z
     .array(IngredientSchema)
     .nullable()
-    .describe("Danh sách tất cả các thành phần có trong sản phẩm"),
+    .describe(
+      "Danh sách tất cả các thành phần có trong sản phẩm, bao gồm cả tỷ trọng, phụ gia nếu có",
+    ),
   dosage: z
     .union([
       z
         .array(
           z.object({
             target: z.string().describe("Mục đích, đối tượng áp dụng"),
-            amount: z.string().describe("Liều lượng sử dụng"),
+            instruction: z.string().describe("Hướng dẫn sử dụng"),
           }),
         )
         .describe(
           "Liều lượng sử dụng chi tiết theo từng mục đích/đối tượng, nếu có.",
         ),
+      // Nếu có cả hướng dẫn riêng cho từng đối tượng và hướng dẫn chung, thì trích phần hướng dẫn riêng trước và phần hướng dẫn chung đặt target là 'Hướng dẫn chung' để phân biệt với các mục tiêu cụ thể khác. ví dụ: [{target: 'Cây lúa', instruction: 'Bón 20kg/sào'}, {target: 'Hướng dẫn chung', instruction: 'Bón 100kg/ha'}]
       z
         .string()
         .describe(
-          "Liều sử dung chung nếu không có hướng dẫn riêng cho từng đối tượng",
+          "Liều sử dụng chung nếu không có hướng dẫn riêng cho từng đối tượng",
         ),
     ])
     .nullable()

@@ -11,22 +11,22 @@ import { formatDatesInResponse } from "./dateProcessor";
 
 dotenv.config();
 
-const client = new OpenAI({
-  apiKey: process.env.wokushop_api_key,
-  baseURL: "https://llm.wokushop.com/v1/",
-});
-
 // const client = new OpenAI({
-//   apiKey: process.env.GEMINI_API_KEY,
-//   baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
+//   apiKey: process.env.wokushop_api_key,
+//   baseURL: "https://llm.wokushop.com/v1/",
 // });
+
+const client = new OpenAI({
+  apiKey: process.env.GEMINI_API_KEY,
+  baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
+});
 
 const schemaTypeToModelMap: {
   [key in SchemaType]: string;
 } = {
-  fish_feed: "gpt-4.1-mini",
-  pesticide: "gemini-3.1-flash-lite-preview",
-  fertilizer: "gemini-3.1-flash-lite-preview",
+  fish_feed: "gemini-3-flash-preview",
+  pesticide: "gemini-3.1-flash-lite",
+  fertilizer: "gemini-3.1-flash-lite",
 };
 
 export const processImagesWithOpenAI = async (
@@ -287,7 +287,7 @@ export const processImagesTest = async (
 
 export const testCallOpenAI = async () => {
   const response = await client.chat.completions.create({
-    model: "gpt-4.1-mini",
+    model: "gemini-3.1-flash-lite",
     messages: [
       { role: "system", content: "You are a helpful assistant." },
       {

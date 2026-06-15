@@ -5,7 +5,7 @@
 const API_BASE_URL =
   import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
-export type ProductCategory = "pesticide" | "fish_feed";
+export type ProductCategory = "pesticide" | "fertilizer" | "fish_feed";
 
 export interface ReviewWarning {
   confidence?: number;
@@ -36,7 +36,7 @@ export interface ProductInfo {
   registrant?: string;
   registration_number?: string;
   uses?: string;
-  dosage?: Array<{ target: string; amount: string }> | string;
+  dosage?: Array<{ target: string; instruction: string }> | string;
   target_crops?: string[];
   target_pests?: string[];
   pre_harvest_interval_days?: number;
@@ -63,11 +63,19 @@ export interface ImageAnalysisResponse {
   error?: string;
 }
 
+export interface SearchMetadata {
+  search_status: "enriched" | "not_found" | "skipped" | "failed";
+  source_url?: string;
+  search_query?: string;
+}
+
 export interface MultipleImagesResponse {
   success: boolean;
   data?: {
     response: string;
+    raw?: string; // Original extraction before search enrichment
     totalImages: number;
+    search_metadata?: SearchMetadata;
   };
   message?: string;
   error?: string;
@@ -192,6 +200,7 @@ export const uploadImageForAnalysis = async (
 export const uploadMultipleImagesForAnalysis = async (
   files: File[],
   category: ProductCategory = "pesticide",
+  search: boolean = false,
 ): Promise<MultipleImagesResponse> => {
   const formData = new FormData();
   files.forEach((file) => {
@@ -203,6 +212,9 @@ export const uploadMultipleImagesForAnalysis = async (
     url.searchParams.append("category", category);
     url.searchParams.append("parsed", "true");
     url.searchParams.append("formatDates", "true");
+    if (search) {
+      url.searchParams.append("search", "true");
+    }
 
     const response = await fetch(url.toString(), {
       method: "POST",

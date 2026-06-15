@@ -1,11 +1,10 @@
-import { AlertTriangle } from "lucide-react";
 import type { ProductInfo } from "../apis/imageApi";
 import { getFieldWarning, isFieldEmpty } from "../apis/imageApi";
 import {
   getNetContentTitle,
   getFormTypeLabel,
   getUnitLabel,
-  getPesticideTypeLabel,
+  getFertilizerTypeLabel,
 } from "../utils/dataMapper";
 import {
   ImageGallery,
@@ -17,19 +16,19 @@ import {
   type FieldDisplay,
 } from "./ResultShared";
 
-interface PesticideResultsProps {
+interface FertilizerResultsProps {
   data: ProductInfo;
   images: File[];
   onReset: () => void;
 }
 
-const ACCENT = "purple" as const;
+const ACCENT = "emerald" as const;
 
-export function PesticideResults({
+export function FertilizerResults({
   data,
   images,
   onReset,
-}: PesticideResultsProps) {
+}: FertilizerResultsProps) {
   const confidenceScore =
     data.metadata?.overall_confidence ?? data.confidence_score ?? 0;
   const confidence = confidenceScore * 100;
@@ -55,10 +54,10 @@ export function PesticideResults({
       warning: getFieldWarning(data, "product_name"),
     },
     {
-      label: "Loại",
+      label: "Loại phân bón",
       key: "product_type",
       icon: "📋",
-      value: getPesticideTypeLabel(data.product_type || ""),
+      value: getFertilizerTypeLabel(data.product_type || ""),
       isEmpty: isFieldEmpty(data.product_type),
       warning: getFieldWarning(data, "product_type"),
     },
@@ -159,12 +158,12 @@ export function PesticideResults({
         data={data}
         hasData={!isFieldEmpty(data.dosage)}
       >
-        <div className="bg-linear-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-lg p-4">
+        <div className="bg-linear-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-lg p-4">
           {typeof data.dosage === "string" ? (
             data.dosage.split("\n").map((line, index) => (
               <p
                 key={index}
-                className="text-sm text-blue-900 leading-relaxed text-left"
+                className="text-sm text-emerald-900 leading-relaxed text-left"
               >
                 {line}
               </p>
@@ -173,11 +172,11 @@ export function PesticideResults({
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className="bg-blue-100">
-                    <th className="border border-blue-300 px-4 py-2 text-left text-xs font-semibold text-blue-700">
+                  <tr className="bg-emerald-100">
+                    <th className="border border-emerald-300 px-4 py-2 text-left text-xs font-semibold text-emerald-700">
                       Đối tượng
                     </th>
-                    <th className="border border-blue-300 px-4 py-2 text-left text-xs font-semibold text-blue-700">
+                    <th className="border border-emerald-300 px-4 py-2 text-left text-xs font-semibold text-emerald-700">
                       Liều lượng
                     </th>
                   </tr>
@@ -187,12 +186,14 @@ export function PesticideResults({
                     data.dosage.map((item, index) => (
                       <tr
                         key={index}
-                        className={index % 2 === 0 ? "bg-white" : "bg-blue-50"}
+                        className={
+                          index % 2 === 0 ? "bg-white" : "bg-emerald-50"
+                        }
                       >
-                        <td className="border border-blue-200 px-4 py-2 text-xs font-medium text-gray-900">
+                        <td className="border border-emerald-200 px-4 py-2 text-xs font-medium text-gray-900">
                           {item.target}
                         </td>
-                        <td className="border border-blue-200 px-4 py-2 text-sm text-gray-900">
+                        <td className="border border-emerald-200 px-4 py-2 text-sm text-gray-900">
                           {item.instruction || "---"}
                         </td>
                       </tr>
@@ -204,9 +205,9 @@ export function PesticideResults({
         </div>
       </DataSection>
 
-      {/* Active Ingredients */}
+      {/* Ingredients */}
       <DataSection
-        title="Thành phần hoạt chất"
+        title="Thành phần"
         icon="🧪"
         fieldKey="ingredients"
         data={data}
@@ -229,7 +230,7 @@ export function PesticideResults({
               <thead>
                 <tr className="bg-orange-100">
                   <th className="border border-orange-300 px-4 py-2 text-left text-xs font-semibold text-orange-700">
-                    Hoạt chất
+                    Thành phần
                   </th>
                   <th className="border border-orange-300 px-4 py-2 text-left text-xs font-semibold text-orange-700">
                     Hàm lượng
@@ -246,7 +247,7 @@ export function PesticideResults({
                       <td className="border border-orange-200 px-4 py-2 text-xs font-medium text-gray-900">
                         {ingredient.name}
                       </td>
-                      <td className="border border-orange-200 px-4 py-2 text-sm text-gray-900">
+                      <td className="border border-orange-200 px-4 py-2 text-sm font-bold text-gray-900">
                         {ingredient.content || "---"}
                       </td>
                     </tr>
@@ -269,7 +270,7 @@ export function PesticideResults({
           {data.target_crops?.map((crop, index) => (
             <span
               key={index}
-              className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium"
+              className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-sm font-medium"
             >
               {crop}
             </span>
@@ -289,7 +290,7 @@ export function PesticideResults({
           {data.target_pests?.map((pest, index) => (
             <span
               key={index}
-              className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium"
+              className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-sm font-medium"
             >
               {pest}
             </span>

@@ -169,7 +169,9 @@ router.post("/analyze", async (req: Request, res: Response) => {
       success: true,
       data: {
         response: responseData,
-        ...(RETURN_BOTH_RAW_AND_ENRICHED ? { raw: result.response } : {}),
+        ...(RETURN_BOTH_RAW_AND_ENRICHED && searchEnabled
+          ? { raw: result.response }
+          : {}),
         totalImages: files.length,
         ...(searchMetadata ? { search_metadata: searchMetadata } : {}),
       },

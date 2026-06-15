@@ -8,13 +8,35 @@ Bao gồm khung response chung và trường riêng cho:
 - Thức ăn thủy sản (fish_feed)
 
 Lưu ý:
-
 - Tất cả trường dưới đây có thể xuất hiện kể cả khi giá trị là null.
 - Chuỗi văn bản được trả về đúng như trên nhãn (không tự động chuẩn hóa).
 
 ---
 
-## 1. Khung Response Tổng
+## 1. Thông tin API (API Endpoints)
+
+### Trích xuất thông tin từ ảnh nhãn sản phẩm
+
+**URL**: `POST http://localhost:5000/api/image/analyze`
+thay đổi khi qua production
+
+**Content-Type**: `multipart/form-data`
+
+**Body**:
+- `images`: Một hoặc nhiều file ảnh nhãn sản phẩm.
+
+**Query Parameters**:
+
+| Tham số | Kiểu dữ liệu | Mô tả |
+| :--- | :--- | :--- |
+| `category` | string | Danh mục sản phẩm (`pesticide`, `fertilizer`, `fish_feed`). Nếu không truyền, hệ thống mặc định `pesticide`. |
+| `parsed` | boolean | `true`: Trả về dữ liệu dạng JSON object. `false`: Trả về dữ liệu dạng chuỗi JSON stringized (mặc định). |
+| `formatDates` | boolean | `true`: Chuẩn hóa các trường ngày tháng (`mfg_date`, `exp_date`) về định dạng chuẩn `DD/MM/YYYY` nếu có thể. |
+| `search` | boolean | `true`: Kích hoạt tính năng tìm kiếm và làm giàu dữ liệu từ cơ sở dữ liệu chính phủ sau khi trích xuất. (chỉ có ở category `pesticide`, `fertilizer`) |
+
+---
+
+## 2. Khung Response Tổng (Top-level Response Wrapper)
 
 ### success (boolean)
 
@@ -22,11 +44,19 @@ Cho biết request tổng thể có xử lý thành công hay không.
 
 ### data (object)
 
-Chứa kết quả trích xuất và thông tin bổ sung.
+Chứa kết quả trích xuất, dữ liệu thô, và thông tin làm giàu từ web.
 
 #### data.response (object)
 
-Kết quả trích xuất và trạng thái của sản phẩm, nếu query parsed=true thì trả về kiểu json, còn không thì trả về dạng JSON.stringify().
+Kết quả trích xuất cuối cùng và trạng thái của sản phẩm. Đây là dữ liệu đã được đối soát và làm giàu (enriched) từ web nếu tìm kiếm thành công.
+
+#### data.raw (object)
+
+Dữ liệu trích xuất gốc trực tiếp từ ảnh (Vision AI) trước khi thực hiện bước làm giàu từ web. Cấu trúc bên trong tương tự như `data.response`, chỉ có khi bật `search=true`.
+
+#### data.search_metadata (object)
+
+Thông tin về kết quả tìm kiếm thông tin sản phẩm từ cơ sở dữ liệu chính phủ.
 
 #### data.totalImages (number)
 
@@ -34,7 +64,28 @@ Tổng số ảnh đã xử lý trong request.
 
 ---
 
-## 2. Đối tượng data.response
+## 2. Thông tin tìm kiếm (data.search_metadata)
+
+### search_status (string enum)
+
+Trạng thái của quá trình tìm kiếm và làm giàu dữ liệu:
+- `enriched`: Tìm thấy sản phẩm trên web và đã hợp nhất dữ liệu thành công.
+- `not_found`: Không tìm thấy sản phẩm tương ứng trong cơ sở dữ liệu web.
+- `skipped`: Bỏ qua tìm kiếm do thiếu thông tin định danh (tên, số đăng ký).
+- `failed`: Lỗi trong quá trình tìm kiếm hoặc hợp nhất dữ liệu.
+- `unsupported_category`: Danh mục sản phẩm hiện chưa hỗ trợ tìm kiếm web.
+
+### source_url (string | null)
+
+Đường dẫn (URL) đến trang sản phẩm trên cổng thông tin chính phủ nếu tìm thấy.
+
+### search_query (string | null)
+
+Từ khóa đã được sử dụng để tìm kiếm trên web.
+
+---
+
+## 3. Đối tượng data.response (hoặc data.raw)
 
 ### success (boolean)
 
@@ -73,7 +124,7 @@ Dữ liệu sản phẩm đã trích xuất. Cấu trúc phụ thuộc danh mụ
 
 ---
 
-## 3. Trường Chung Cho Tất Cả Danh Mục
+## 4. Trường Chung Cho Tất Cả Danh Mục
 
 Những trường này xuất hiện ở mọi danh mục sản phẩm.
 
@@ -93,8 +144,8 @@ Giá trị có thể:
 - vien
 - khac
 
-### manufacturer (string | null)
-Tên nhà sản xuất.
+### registrant (string | null)
+Tên công ty đăng ký hoặc nhà sản xuất.
 
 ### product_name (string | null)
 Tên sản phẩm.
@@ -149,12 +200,11 @@ Công dụng hoặc mục đích sử dụng.
 Ngày sản xuất (NSX).
 
 ### exp_date (string | null)
-Hạn sử dụng (HSD). Nếu nhãn chỉ ghi khoảng thời gian (ví dụ: "12 tháng"),
-trả về nguyên văn.
+Hạn sử dụng (HSD). Nếu nhãn chỉ ghi khoảng thời gian (ví dụ: "12 tháng") và không có ngày sản xuất cụ thể, thì đặt exp_date là chuỗi nguyên văn "12 tháng" và để mfg_date là null. Nếu có ngày sản xuất cụ thể và query param `formatDates` là `true` thì trích xuất ngày đó và tính hạn sử dụng dựa trên khoảng thời gian đã cho.
 
 ---
 
-## 4. Trường Riêng Cho Thuốc BVTV/Thủy Sản (category = "pesticide")
+## 5. Trường Riêng Cho Thuốc BVTV/Thủy Sản (category = "pesticide")
 
 ### product_type (string | null)
 Loại sản phẩm.
@@ -165,8 +215,8 @@ Giá trị có thể:
 ### registration_number (string | null)
 Số đăng ký.
 
-### ingredients (array | null)
-Danh sách tất cả thành phần (hoạt chất, chất mang, phụ gia, độ ẩm...).
+### ingredients (array | string | null)
+Danh sách tất cả thành phần (hoạt chất, chất mang, phụ gia, độ ẩm...). Hoặc chuỗi văn bản nếu không tách được thành phần riêng lẻ.
 
 Mỗi phần tử trong ingredients:
 - name (string): Tên thành phần.
@@ -176,7 +226,7 @@ Mỗi phần tử trong ingredients:
 Liều lượng sử dụng.
 Nếu có hướng dẫn theo từng đối tượng/mục đích thì là mảng đối tượng:
 - target (string): Đối tượng/mục đích áp dụng.
-- amount (string): Liều lượng tương ứng.
+- instruction (string): Hướng dẫn sử dụng.
 Nếu chỉ có liều chung thì là chuỗi.
 
 ### target_crops (array | null)
@@ -190,7 +240,7 @@ Thời gian cách ly trước thu hoạch (tính bằng ngày).
 
 ---
 
-## 5. Trường Riêng Cho Phân bón (category = "fertilizer")
+## 6. Trường Riêng Cho Phân bón (category = "fertilizer")
 
 ### product_type (string | null)
 Loại sản phẩm.
@@ -199,10 +249,10 @@ Giá trị có thể:
 - huu_co
 
 ### registration_number (string | null)
-Số đăng ký.
+Số đăng ký (Mã số phân bón).
 
-### ingredients (array | null)
-Danh sách tất cả thành phần (hoạt chất, chất mang, phụ gia, độ ẩm...).
+### ingredients (array | string | null)
+Danh sách tất cả thành phần (hoạt chất, chất mang, phụ gia, độ ẩm...). Hoặc chuỗi văn bản nếu không tách được thành phần riêng lẻ.
 
 Mỗi phần tử trong ingredients:
 - name (string): Tên thành phần.
@@ -212,21 +262,18 @@ Mỗi phần tử trong ingredients:
 Liều lượng sử dụng.
 Nếu có hướng dẫn theo từng đối tượng/mục đích thì là mảng đối tượng:
 - target (string): Đối tượng/mục đích áp dụng.
-- amount (string): Liều lượng tương ứng.
+- instruction (string): Hướng dẫn sử dụng.
 Nếu chỉ có liều chung thì là chuỗi.
 
 ### target_crops (array | null)
-Danh sách cây trồng/loài thủy sản áp dụng.
-
-### target_pests (array | null)
-Danh sách bệnh/dịch hại cần xử lý.
+Danh sách cây trồng áp dụng.
 
 ### pre_harvest_interval_days (number | null)
 Thời gian cách ly trước thu hoạch (tính bằng ngày).
 
 ---
 
-## 6. Trường Riêng Cho Thức Ăn Thủy Sản (category = "fish_feed")
+## 7. Trường Riêng Cho Thức Ăn Thủy Sản (category = "fish_feed")
 
 ### product_type (string | null)
 Loại sản phẩm thức ăn.
@@ -262,72 +309,206 @@ Nếu là string: hướng dẫn chung cho sản phẩm.
 
 ---
 
-## 6. Ví Dụ JSON Và Giải Thích
+## 8. Ví Dụ JSON Và Giải Thích
 
-### 6.1. Ví dụ Pesticide
+### 8.1. Ví dụ Pesticide (Đã làm giàu từ web)
 
 ```json
 {
     "success": true,
     "data": {
         "response": {
-            "data": {
-                "category": "pesticide",
-                "dosage": "1kg/2.000m² (đối với ao quầng cạnh 1kg/5.000m²)",
-                "exp_date": "04/05/2028",
-                "form_type": null,
-                "ingredients": [
-                    {
-                        "content": "50%",
-                        "name": "Copper sulfate pentahydrate (min.)"
-                    },
-                    {
-                        "content": "25%",
-                        "name": "Độ ẩm (max)"
-                    },
-                    {
-                        "content": "1kg",
-                        "name": "Chất mang: bột cao lanh (vừa đủ)"
-                    }
-                ],
-                "manufacturer": "CÔNG TY TNHH TM DV VINATOM 3979",
-                "mfg_date": "04/05/2026",
-                "net_content": "1",
-                "net_unit": "kg",
-                "package_type": null,
-                "pre_harvest_interval_days": null,
-                "product_name": "GANCLEAR3979",
-                "product_type": "thuốc thuỷ sản",
-                "registration_number": "0014:2022/VNT3979",
-                "target_crops": [
-                    "ao nuôi thuỷ sản"
-                ],
-                "target_pests": [
-                    "Vibrio, tảo phát sáng, tảo lam, sứa, kí sinh trùng"
-                ],
-                "uses": "Chuyên diệt khuẩn Vibrio, tảo phát sáng, tảo lam, sứa, kí sinh trùng. Diệt khuẩn, nấm, kí sinh trùng, tảo độc, tôm chết rải rác."
-            },
+            "success": true,
             "error_code": "NONE",
             "message": "Trích xuất thông tin sản phẩm thành công.",
             "metadata": {
                 "overall_confidence": 0.95,
                 "review_warnings": []
             },
-            "success": true
+            "data": {
+                "category": "pesticide",
+                "product_name": "GANCLEAR3979",
+                "registrant": "CÔNG TY TNHH TM DV VINATOM 3979",
+                "dosage": "1kg/2.000m²",
+                "exp_date": "04/05/2028",
+                "ingredients": [
+                    { "name": "Copper sulfate pentahydrate", "content": "50%" }
+                ],
+                "net_content": "1",
+                "net_unit": "kg"
+            }
+        },
+        "search_metadata": {
+            "search_status": "enriched",
+            "source_url": "http://danhmuc.thuocbvtv.com/...",
+            "search_query": "GANCLEAR3979"
         },
         "totalImages": 1
     }
 }
 ```
 
-Giải thích nhanh:
-- `data.response.data.category`: xác định danh mục là pesticide.
-- `ingredients`: danh sách thành phần, mỗi thành phần có `name` và `content`.
-- `dosage`: liều lượng chung (chuỗi).
-- `metadata`: độ tin cậy và cảnh báo; ở đây là 0.95 và không có cảnh báo.
-- `totalImages`: số ảnh xử lý trong request.
+### 8.2. Ví dụ Fertilizer (Phân bón - Đã làm giàu từ web)
 
-### 6.2. Ví dụ Fish Feed
+```json
+{
+    "success": true,
+    "data": {
+        "response": {
+            "success": true,
+            "error_code": "NONE",
+            "message": "Trích xuất thành công",
+            "metadata": {
+                "overall_confidence": 0.95,
+                "review_warnings": [
+                    {
+                        "field": "mfg_date",
+                        "issue": "AMBIGUOUS_VALUE",
+                        "message": "Ngày sản xuất được ghi là 'Xem trên bao bì' nhưng không thấy in ngày cụ thể"
+                    }
+                ]
+            },
+            "data": {
+                "category": "fertilizer",
+                "form_type": "nuoc",
+                "registrant": "Công ty TNHH MTV hóa chất quốc tế Âu Mỹ",
+                "product_name": "Phân bón vi lượng AUMY-MICROTOP CHELATE MIX - PHỤ GIA LẤY NHỤY",
+                "net_content": "500",
+                "net_unit": "ml",
+                "package_type": "chai",
+                "uses": "Giúp mát cua sáng, bung bông cực mạnh, chống chịu đồng loạt, sáng bông, dưỡng bông, chống chịu thời tiết bất lợi, hạn chế hiện tượng khô đen. Hồi sinh nhụy, nhụy xanh mạnh, lấy nhiều nhụy. Tăng đậu trái tối đa, nuôi trái non.",
+                "mfg_date": "Xem trên bao bì",
+                "exp_date": "3 năm",
+                "product_type": "vo_co",
+                "registration_number": "02061",
+                "ingredients": [
+                    {
+                        "name": "Kẽm (Zn)",
+                        "content": "500 ppm"
+                    },
+                    {
+                        "name": "Sắt (Fe)",
+                        "content": "50 ppm"
+                    },
+                    {
+                        "name": "Molipđen (Mo)",
+                        "content": "50 ppm"
+                    },
+                    {
+                        "name": "Bo (B)",
+                        "content": "2.000 ppm"
+                    },
+                    {
+                        "name": "Tỷ trọng",
+                        "content": "1,15"
+                    },
+                    {
+                        "name": "L-Amino Acid, K40 chuyên cho sâu riêng",
+                        "content": "bổ sung phụ gia đặc hiệu"
+                    }
+                ],
+                "dosage": [
+                    {
+                        "target": "Từ khi nhú mắt cua đến xổ nhụy",
+                        "instruction": "Pha 10-15ml / 8 lít nước. Trước và sau khi hoa nở khoảng 5 ngày: Pha 10ml / 8 lít nước"
+                    },
+                    {
+                        "target": "Khi sầu riêng tượng trái non",
+                        "instruction": "Pha 10ml / 8 lít nước. Phun ướt đều chùm bông, chùm trái non và cành lá mang chùm bông trái. Phun 2 lần cách nhau 5 ngày. Chai 500ml có thể pha được 2 phuy (440 lít nước)"
+                    }
+                ],
+                "target_crops": [
+                    "sầu riêng",
+                    "rau",
+                    "hoa kiểng",
+                    "cây ăn quả",
+                    "cây công nghiệp",
+                    "lúa",
+                    "ngô/bắp",
+                    "mè",
+                    "sắn",
+                    "cây họ đậu",
+                    "cây ăn củ"
+                ],
+                "pre_harvest_interval_days": 0
+            }
+        },
+        "raw": {
+            "success": true,
+            "error_code": "NONE",
+            "message": "Trích xuất thành công",
+            "metadata": {
+                "overall_confidence": 0.95,
+                "review_warnings": [
+                    {
+                        "field": "mfg_date",
+                        "issue": "AMBIGUOUS_VALUE",
+                        "message": "Ngày sản xuất được ghi là 'Xem trên bao bì' nhưng không thấy in ngày cụ thể"
+                    }
+                ]
+            },
+            "data": {
+                "category": "fertilizer",
+                "form_type": "nuoc",
+                "registrant": "CÔNG TY TNHH MTV HÓA CHẤT QUỐC TẾ ÂU MỸ",
+                "product_name": "Microtop Chelated - PHỤ GIA LẤY NHỤY",
+                "net_content": "500",
+                "net_unit": "ml",
+                "package_type": "chai",
+                "uses": "Giúp mát cua sáng, bung bông cực mạnh, chống chịu đồng loạt, sáng bông, dưỡng bông, chống chịu thời tiết bất lợi, hạn chế hiện tượng khô đen. Hồi sinh nhụy, nhụy xanh mạnh, lấy nhiều nhụy. Tăng đậu trái tối đa, nuôi trái non.",
+                "mfg_date": "Xem trên bao bì",
+                "exp_date": "3 năm",
+                "product_type": "vo_co",
+                "registration_number": "02061",
+                "ingredients": [
+                    {
+                        "name": "Bo (B)",
+                        "content": "2.000 ppm"
+                    },
+                    {
+                        "name": "Kẽm (Zn)",
+                        "content": "500 ppm"
+                    },
+                    {
+                        "name": "Molypden (Mo)",
+                        "content": "50 ppm"
+                    },
+                    {
+                        "name": "Sắt (Fe)",
+                        "content": "50 ppm"
+                    },
+                    {
+                        "name": "L-Amino Acid, K40 chuyên cho sâu riêng",
+                        "content": "bổ sung phụ gia đặc hiệu"
+                    }
+                ],
+                "dosage": [
+                    {
+                        "target": "Từ khi nhú mắt cua đến xổ nhụy",
+                        "instruction": "Pha 10-15ml / 8 lít nước. Trước và sau khi hoa nở khoảng 5 ngày: Pha 10ml / 8 lít nước"
+                    },
+                    {
+                        "target": "Khi sầu riêng tượng trái non",
+                        "instruction": "Pha 10ml / 8 lít nước. Phun ướt đều chùm bông, chùm trái non và cành lá mang chùm bông trái. Phun 2 lần cách nhau 5 ngày. Chai 500ml có thể pha được 2 phuy (440 lít nước)"
+                    }
+                ],
+                "target_crops": [
+                    "sầu riêng"
+                ],
+                "pre_harvest_interval_days": 0
+            }
+        },
+        "totalImages": 3,
+        "search_metadata": {
+            "search_status": "enriched",
+            "source_url": "http://113.190.254.147/PhanBon/en/phanbonchungnhan?MaPhanBon=02061",
+            "search_query": "Microtop Chelated - PHỤ GIA LẤY NHỤY"
+        }
+    }
+}
+```
+
+### 8.3. Ví dụ Fish Feed (Thức ăn thủy sản)
 
 ```json
 {
@@ -336,77 +517,191 @@ Giải thích nhanh:
         "response": {
             "data": {
                 "category": "fish_feed",
-                "exp_date": "90 ngày kể từ ngày sản xuất",
+                "exp_date": "",
                 "feeding_guide": {
-                    "code": "MK 831",
+                    "code": "D002SV",
                     "guide": [
                         {
-                            "name": "Tỷ lệ (%) so với khối lượng đàn cá",
-                            "value": "4-6"
+                            "name": "HÌNH DẠNG",
+                            "value": "VIÊN (Pellet)"
                         },
                         {
-                            "name": "Số lần cho ăn/ngày",
-                            "value": "3-4"
+                            "name": "KÍCH CỠ THỨC ĂN (mm)",
+                            "value": "0.8 - 1.2"
+                        },
+                        {
+                            "name": "TRỌNG LƯỢNG CƠ THỂ (g)",
+                            "value": "3 - 5"
+                        },
+                        {
+                            "name": "TỶ LỆ CHO ĂN (%)",
+                            "value": "8 - 10"
+                        },
+                        {
+                            "name": "SỐ LẦN CHO ĂN / NGÀY",
+                            "value": "5 - 6"
                         }
                     ]
                 },
                 "form_type": null,
-                "ingredients": "Bột cá cao cấp, bột đậu nành, bột mì, cám gạo, chất dẫn dụ, Vitamin và khoáng, ...",
-                "manufacturer": "CTY TNHH MTV THỨC ĂN THỦY SẢN MEKONG",
+                "ingredients": "Bột cá, Bột đậu nành, Bột mì, Dầu cá, Vitamin và Khoáng chất. Fish meal, Soybean meal, Wheat flour, Fish oil, Vitamins and Minerals.",
                 "mfg_date": null,
-                "net_content": "25",
+                "net_content": "10",
                 "net_unit": "kg",
                 "nutrition_facts": [
                     {
-                        "name": "Độ ẩm (%) max",
-                        "unit": null,
+                        "name": "ĐỘ ẨM TỐI ĐA",
+                        "unit": "%",
                         "value": "11"
                     },
                     {
-                        "name": "Protein thô (%) min",
-                        "unit": null,
-                        "value": "31"
+                        "name": "PROTEIN THÔ TỐI THIỂU",
+                        "unit": "%",
+                        "value": "40"
                     },
                     {
-                        "name": "Béo thô (%) max",
-                        "unit": null,
-                        "value": "6"
-                    },
-                    {
-                        "name": "Xơ thô (%) max",
-                        "unit": null,
+                        "name": "BÉO THÔ TỐI THIỂU (*)",
+                        "unit": "%",
                         "value": "5"
                     },
                     {
-                        "name": "Ca (%) min",
-                        "unit": null,
-                        "value": "1.3"
+                        "name": " TRO TỐI ĐA",
+                        "unit": "%",
+                        "value": "14"
                     },
                     {
-                        "name": "P tổng số (%) min",
-                        "unit": null,
-                        "value": "1.0"
+                        "name": "XƠ THÔ TỐI ĐA",
+                        "unit": "%",
+                        "value": "6"
                     },
                     {
-                        "name": "Lysine tổng số (%) min",
-                        "unit": null,
+                        "name": "PHOTPHO TỔNG TỐI THIỂU",
+                        "unit": "%",
+                        "value": "0.5"
+                    },
+                    {
+                        "name": "LYSINE TỔNG TỐI THIỂU",
+                        "unit": "%",
                         "value": "1.8"
                     },
                     {
-                        "name": "Ethoxy quin (ppm)",
-                        "unit": null,
-                        "value": "< 150"
+                        "name": "ETHOXYQUIN TỐI ĐA",
+                        "unit": "mg/kg",
+                        "value": "150"
+                    },
+                    {
+                        "name": "BHA + BHT TỐI ĐA",
+                        "unit": "mg/kg",
+                        "value": "300"
                     }
                 ],
-                "package_type": "bao",
-                "product_name": "THỨC ĂN THỦY SẢN MEKONG MK 831",
-                "product_type": "THỨC ĂN HỖN HỢP CHO CÁ RÔ PHI, ĐIÊU HỒNG GIAI ĐOẠN TỪ 10 - 100g/con",
+                "package_type": null,
+                "product_name": "UP - THỨC ĂN HỖN HỢP CHO CÁ GIỐNG - FINGERLINGS FEED",
+                "product_type": null,
+                "registrant": "CÔNG TY TNHH UNI-PRESIDENT VIỆT NAM",
                 "species": null,
                 "uses": null,
-                "variant_code": "MK 831"
+                "variant_code": "D002SV"
             },
             "error_code": "NONE",
-            "message": "Trích xuất thông tin sản phẩm thành công",
+            "message": "Trích xuất thông tin thành công",
+            "metadata": {
+                "overall_confidence": 0.95,
+                "review_warnings": []
+            },
+            "success": true
+        },
+        "raw": {
+            "data": {
+                "category": "fish_feed",
+                "exp_date": "",
+                "feeding_guide": {
+                    "code": "D002SV",
+                    "guide": [
+                        {
+                            "name": "HÌNH DẠNG",
+                            "value": "VIÊN (Pellet)"
+                        },
+                        {
+                            "name": "KÍCH CỠ THỨC ĂN (mm)",
+                            "value": "0.8 - 1.2"
+                        },
+                        {
+                            "name": "TRỌNG LƯỢNG CƠ THỂ (g)",
+                            "value": "3 - 5"
+                        },
+                        {
+                            "name": "TỶ LỆ CHO ĂN (%)",
+                            "value": "8 - 10"
+                        },
+                        {
+                            "name": "SỐ LẦN CHO ĂN / NGÀY",
+                            "value": "5 - 6"
+                        }
+                    ]
+                },
+                "form_type": null,
+                "ingredients": "Bột cá, Bột đậu nành, Bột mì, Dầu cá, Vitamin và Khoáng chất. Fish meal, Soybean meal, Wheat flour, Fish oil, Vitamins and Minerals.",
+                "mfg_date": null,
+                "net_content": "10",
+                "net_unit": "kg",
+                "nutrition_facts": [
+                    {
+                        "name": "ĐỘ ẨM TỐI ĐA",
+                        "unit": "%",
+                        "value": "11"
+                    },
+                    {
+                        "name": "PROTEIN THÔ TỐI THIỂU",
+                        "unit": "%",
+                        "value": "40"
+                    },
+                    {
+                        "name": "BÉO THÔ TỐI THIỂU (*)",
+                        "unit": "%",
+                        "value": "5"
+                    },
+                    {
+                        "name": " TRO TỐI ĐA",
+                        "unit": "%",
+                        "value": "14"
+                    },
+                    {
+                        "name": "XƠ THÔ TỐI ĐA",
+                        "unit": "%",
+                        "value": "6"
+                    },
+                    {
+                        "name": "PHOTPHO TỔNG TỐI THIỂU",
+                        "unit": "%",
+                        "value": "0.5"
+                    },
+                    {
+                        "name": "LYSINE TỔNG TỐI THIỂU",
+                        "unit": "%",
+                        "value": "1.8"
+                    },
+                    {
+                        "name": "ETHOXYQUIN TỐI ĐA",
+                        "unit": "mg/kg",
+                        "value": "150"
+                    },
+                    {
+                        "name": "BHA + BHT TỐI ĐA",
+                        "unit": "mg/kg",
+                        "value": "300"
+                    }
+                ],
+                "package_type": null,
+                "product_name": "UP - THỨC ĂN HỖN HỢP CHO CÁ GIỐNG - FINGERLINGS FEED",
+                "product_type": null,
+                "registrant": "CÔNG TY TNHH UNI-PRESIDENT VIỆT NAM",
+                "species": null,
+                "uses": null,
+                "variant_code": "D002SV"
+            },
+            "error_code": "NONE",
+            "message": "Trích xuất thông tin thành công",
             "metadata": {
                 "overall_confidence": 0.95,
                 "review_warnings": []
@@ -419,7 +714,10 @@ Giải thích nhanh:
 ```
 
 Giải thích nhanh:
-- `feeding_guide`: hướng dẫn theo biến thể; `code` phải trùng với `variant_code`.
-- `nutrition_facts`: thành phần dinh dưỡng (tên, giá trị, đơn vị).
-- `package_type`: quy cách đóng gói (ví dụ: bao).
-- `totalImages`: số ảnh xử lý trong request.
+- **data.response**: Kết quả cuối cùng (đã hợp nhất từ web nếu có).
+- **data.raw**: Kết quả thô từ Vision AI (chỉ có khi search web được thực hiện).
+- **data.search_metadata**: Trạng thái và nguồn dữ liệu tìm kiếm.
+- **registrant**: Công ty đăng ký sản phẩm (thay thế cho manufacturer).
+- **dosage.instruction**: Nội dung hướng dẫn chi tiết (thanh thế cho amount trong các schema cũ).
+- **pre_harvest_interval_days**: Số ngày cách ly (số nguyên).
+- **totalImages**: Số lượng ảnh trong request gốc.

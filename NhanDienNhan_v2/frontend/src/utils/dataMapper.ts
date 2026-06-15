@@ -34,3 +34,27 @@ const unitMap: Record<string, string> = {
 export function getUnitLabel(unit: string) {
   return unitMap[unit.toLocaleLowerCase()] || unit;
 }
+
+// pesticide type mapping
+const pesticideTypeMap: Record<string, string> = {
+  hoa_hoc: "Hóa học",
+  sinh_hoc: "Sinh học",
+  vi_sinh: "Vi sinh",
+  khac: "Khác",
+};
+
+export function getPesticideTypeLabel(type: string) {
+  return pesticideTypeMap[type.toLocaleLowerCase()] || "Không xác định";
+}
+
+// ------------- Fertilizer type mapping -------------
+const fertilizerTypeMap: Record<string, string> = {
+  vo_co: "Vô cơ",
+  huu_co: "Hữu cơ",
+  vi_sinh: "Vi sinh",
+  khac: "Khác",
+};
+
+export function getFertilizerTypeLabel(type: string) {
+  return fertilizerTypeMap[type.toLocaleLowerCase()] || "Không xác định";
+}
