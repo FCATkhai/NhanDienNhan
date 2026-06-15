@@ -1,6 +1,6 @@
 import { AlertCircle, CheckCircle2, AlertTriangle } from "lucide-react";
 import type { ProductInfo, ReviewWarning } from "../apis/imageApi";
-import { getFieldWarning, isFieldEmpty } from "../apis/imageApi";
+import { getFieldWarning } from "../apis/imageApi";
 
 // ─── Types ──────────────────────────────────────────────────
 

@@ -1,4 +1,3 @@
-import { AlertTriangle } from "lucide-react";
 import type { ProductInfo } from "../apis/imageApi";
 import { getFieldWarning, isFieldEmpty } from "../apis/imageApi";
 import {
