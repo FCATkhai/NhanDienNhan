@@ -6,6 +6,7 @@ const API_BASE_URL =
   import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
 export type ProductCategory = "pesticide" | "fertilizer" | "fish_feed";
+export type SearchMode = "none" | "always" | "interactive";
 
 export interface ReviewWarning {
   confidence?: number;
@@ -76,6 +77,8 @@ export interface MultipleImagesResponse {
     raw?: string; // Original extraction before search enrichment
     totalImages: number;
     search_metadata?: SearchMetadata;
+    // LLM's search decision (only present in interactiveSearch mode)
+    search_decision?: { needs_web_search: boolean; search_reason: string | null };
   };
   message?: string;
   error?: string;
@@ -194,13 +197,14 @@ export const uploadImageForAnalysis = async (
 /**
  * Upload multiple images for analysis
  * @param files - Array of image files to upload
- * @param category - Product category: "pesticide" (default) or "fish_feed"
- * @returns Analysis results from OpenAI
+ * @param category - Product category: "pesticide" | "fertilizer" | "fish_feed"
+ * @param searchMode - Search enrichment mode: "none" (default) | "always" | "interactive"
+ * @returns Analysis results from the backend
  */
 export const uploadMultipleImagesForAnalysis = async (
   files: File[],
   category: ProductCategory = "pesticide",
-  search: boolean = false,
+  searchMode: SearchMode = "none",
 ): Promise<MultipleImagesResponse> => {
   const formData = new FormData();
   files.forEach((file) => {
@@ -212,9 +216,8 @@ export const uploadMultipleImagesForAnalysis = async (
     url.searchParams.append("category", category);
     url.searchParams.append("parsed", "true");
     url.searchParams.append("formatDates", "true");
-    if (search) {
-      url.searchParams.append("search", "true");
-    }
+    if (searchMode === "always")      url.searchParams.append("alwaysSearch",      "true");
+    if (searchMode === "interactive") url.searchParams.append("interactiveSearch", "true");
 
     const response = await fetch(url.toString(), {
       method: "POST",

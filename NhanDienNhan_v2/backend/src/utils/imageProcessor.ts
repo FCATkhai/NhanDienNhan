@@ -6,6 +6,8 @@ import {
   FishFeedResponseSchema,
   PesticideResponseSchema,
   FertilizerResponseSchema,
+  PesticideResponseSchemaWithSearch,
+  FertilizerResponseSchemaWithSearch,
 } from "@backend/validation/productInfo";
 import { formatDatesInResponse } from "./dateProcessor";
 
@@ -120,6 +122,7 @@ export const processImagesWithOpenAI_chatCompletions = async (
   schemaType: SchemaType = "pesticide",
   isParsed: boolean = false,
   formatDates: boolean = false,
+  withSearchSchema: boolean = false,
 ) => {
   try {
     // Convert buffers to base64
@@ -149,8 +152,12 @@ export const processImagesWithOpenAI_chatCompletions = async (
       schemaType === "fish_feed"
         ? FishFeedResponseSchema
         : schemaType === "fertilizer"
-          ? FertilizerResponseSchema
-          : PesticideResponseSchema;
+          ? withSearchSchema
+            ? FertilizerResponseSchemaWithSearch
+            : FertilizerResponseSchema
+          : withSearchSchema
+            ? PesticideResponseSchemaWithSearch
+            : PesticideResponseSchema;
 
     // Gọi hàm qua client.chat.completions.create
     const response = await client.chat.completions.create({

@@ -21,6 +21,18 @@ export const ReviewWarningSchema = z.object({
     .describe("Mô tả chi tiết vấn đề bằng tiếng Việt cho người duyệt xem"),
 });
 
+const searchSchema = z.object({
+  needs_web_search: z
+    .boolean()
+    .describe("Có cần tìm kiếm thêm trên web để xác định sản phẩm hay không"),
+  search_reason: z
+    .string()
+    .nullable()
+    .describe(
+      "Lý do cần tìm kiếm thêm, chỉ điền nếu needs_web_search = true. Ví dụ: 'không tìm thấy ngày cách ly trước thu hoạch trên nhãn'",
+    ),
+});
+
 export const MetadataSchema = z.object({
   overall_confidence: z
     .number()
@@ -55,6 +67,14 @@ export const BaseResponseSchema = z.object({
   metadata: MetadataSchema.nullable().describe(
     "Thông tin cảnh báo độ tin cậy (để null nếu ảnh quá mờ không trích xuất được gì)",
   ),
+});
+
+export const BaseResponseSchemaWithSearch = BaseResponseSchema.extend({
+  search_decision: searchSchema
+    .nullable()
+    .describe(
+      "Thông tin về việc có cần tìm kiếm thêm trên web hay không, và lý do nếu có",
+    ),
 });
 
 const unitMap = {
@@ -126,6 +146,7 @@ const BaseProductDataSchema = z.object({
   mfg_date: z.string().nullable().describe("Ngày sản xuất (NSX)"),
   exp_date: z
     .string()
+    .nullable()
     .describe(
       "Hạn sử dụng (HSD), nếu chỉ ghi khoảng thời gian (VD: '12 tháng') thì trả về những gì có trên nhãn",
     ),
@@ -205,6 +226,13 @@ export const PesticideResponseSchema = BaseResponseSchema.extend({
   ),
 });
 
+export const PesticideResponseSchemaWithSearch =
+  BaseResponseSchemaWithSearch.extend({
+    data: PesticideDataSchema.nullable().describe(
+      "Dữ liệu sản phẩm thuốc BVTV/thuốc thuỷ sản",
+    ),
+  });
+
 // --- PHÂN BÓN (FERTILIZER) ---
 
 export const FertilizerDataSchema = BaseProductDataSchema.extend({
@@ -262,6 +290,11 @@ export const FertilizerDataSchema = BaseProductDataSchema.extend({
 export const FertilizerResponseSchema = BaseResponseSchema.extend({
   data: FertilizerDataSchema.nullable().describe("Dữ liệu sản phẩm phân bón"),
 });
+
+export const FertilizerResponseSchemaWithSearch =
+  BaseResponseSchemaWithSearch.extend({
+    data: FertilizerDataSchema.nullable().describe("Dữ liệu sản phẩm phân bón"),
+  });
 
 // --- THỨC ĂN THỦY SẢN (FISH FEED) ---
 

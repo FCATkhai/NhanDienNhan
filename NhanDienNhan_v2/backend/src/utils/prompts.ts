@@ -1,24 +1,5 @@
-// export const pesticide_prompt = `
-//         Dựa vào hình ảnh, hãy trích xuất thông tin sản phẩm. Hãy cố gắng trích xuất thông tin chính xác nhất có thể và đánh giá độ tin cậy của thông tin đó. Những field không chỉ rõ trong hình ảnh có thể để trống hoặc null.
+import type { SchemaType } from "@backend/validation/types";
 
-//         Đối với các trường dữ liệu, nếu bạn cảm thấy không trích xuất được do ảnh mờ, chói sáng hoặc bố cục bảng biểu khó đọc, hãy thêm đường dẫn của trường đó vào mảng review_warnings trong metadata. Nếu bạn tự tin vào thông tin đã trích xuất, hãy bỏ qua, giữ mảng review_warnings trống.
-
-//         Nếu ảnh:
-//         - quá mờ
-//         - không đọc được chữ
-//         - không phải sản phẩm thuốc BVTV/phân bón
-//         - không có nhãn
-
-//         thì:
-//         - success = false
-//         - điền error_code phù hợp
-//         - message mô tả lỗi cho UI
-//         - các field còn lại để null hoặc mảng rỗng
-
-//         Trả về JSON thoả mãn schema, chỉ trả về JSON, không giải thích gì thêm.
-//         `;
-
-// test prompt to get more detailed extraction of active ingredients
 export const pesticide_prompt = `
 Dựa vào hình ảnh, hãy trích xuất thông tin sản phẩm. 
 
@@ -38,15 +19,7 @@ Nếu ảnh quá mờ, không đọc được chữ, không phải sản phẩm 
 - điền error_code phù hợp
 - message mô tả lỗi cho UI
 - các field còn lại để null hoặc mảng rỗng
-
-Trả về JSON thoả mãn schema, chỉ trả về JSON, không giải thích gì thêm.
 `;
-
-export const test_prompt = `
-Is this pesticide label correctly oriented (text readable, not rotated/flipped)? Reply ONLY with JSON: {"degrees": 0, "confident": true} degrees = how many degrees CW to rotate to fix it (0/90/180/270).
-`;
-
-// Dựa vào hình ảnh, hãy trích toàn bộ thông tin được in trên nhãn. Hãy cố gắng trích xuất càng nhiều thông tin càng tốt.
 
 //tight prompt
 // export const pesticide_prompt = `
@@ -90,30 +63,8 @@ Nếu ảnh quá mờ, không đọc được chữ, không phải sản phẩm 
 - điền error_code phù hợp
 - message mô tả lỗi cho UI
 - các field còn lại để null hoặc mảng rỗng
-
-Trả về JSON thoả mãn schema, chỉ trả về JSON, không giải thích gì thêm.
 `;
-
-// export const feed_prompt = `
-//         Dựa vào hình ảnh, hãy trích xuất thông tin sản phẩm. Hãy cố gắng trích xuất thông tin chính xác nhất có thể và đánh giá độ tin cậy của thông tin đó. Những field không chỉ rõ trong hình ảnh có thể để trống hoặc null.
-
-//         variant_code là mã biến thể của sản phẩm, thường được đánh dấu tick vào nhãn, hoặc được in trực tiếp trên bao bì. Nếu không tìm thấy mã biến thể thì để null.
-
-//         Đối với các trường dữ liệu, nếu bạn cảm thấy không trích xuất được do ảnh mờ, chói sáng hoặc bố cục bảng biểu khó đọc, hãy thêm đường dẫn của trường đó vào mảng review_warnings trong metadata. Nếu bạn tự tin vào thông tin đã trích xuất, hãy bỏ qua, giữ mảng review_warnings trống.
-
-//         Nếu ảnh:
-//         - quá mờ
-//         - không đọc được chữ
-//         - không phải sản phẩm thức ăn thủy sản
-//         - không có nhãn
-
-//         thì:
-//         - success = false
-//         - điền error_code phù hợp
-//         - message mô tả lỗi cho UI
-//         - các field còn lại để null hoặc mảng rỗng
-//         Trả về JSON thoả mãn schema, chỉ trả về JSON, không giải thích gì thêm.
-//         `;
+// Trả về JSON thoả mãn schema, chỉ trả về JSON, không giải thích gì thêm.
 
 // test prompt
 export const feed_prompt = `
@@ -177,3 +128,64 @@ Nếu ảnh quá mờ toàn bộ, không đọc được bất kỳ chữ nào, 
 
 Chỉ trả về JSON thoả mãn schema, không giải thích gì thêm.
 `;
+
+export const test_prompt = `
+Is this pesticide label correctly oriented (text readable, not rotated/flipped)? Reply ONLY with JSON: {"degrees": 0, "confident": true} degrees = how many degrees CW to rotate to fix it (0/90/180/270).
+`;
+// test raw result from model for debugging
+// Dựa vào hình ảnh, hãy trích toàn bộ thông tin được in trên nhãn. Hãy cố gắng trích xuất càng nhiều thông tin càng tốt.
+
+const search_prompt = `
+QUY TẮC QUYẾT ĐỊNH TÌM KIẾM THÊM TRÊN WEB:
+Mục đích của việc tìm kiếm trên web là CHỈ để bổ sung thông tin còn thiếu hoặc không chắc chắn.
+
+Đặt "needs_web_search" = true nếu BẤT KỲ thông tin quan trọng nào sau đây bị thiếu hoặc không rõ ràng: tên sản phẩm (product_name), thành phần hoạt chất (ingredients), hoặc thời gian cách ly (pre-harvest interval).
+
+Đặt "needs_web_search" = false nếu:
+- danh tính sản phẩm được trích xuất một cách tự tin
+- thành phần hoạt chất đầy đủ
+- thời gian cách ly (pre-harvest interval) có mặt
+- không tồn tại cảnh báo đánh giá nghiêm trọng nào
+
+Không yêu cầu tìm kiếm trên web chỉ để cải thiện độ chính xác của dữ liệu đã trích xuất nếu thông tin đó đã đủ rõ ràng và đầy đủ.
+
+Khi không chắc chắn, ưu tiên đặt needs_web_search = true để đảm bảo dữ liệu đầy đủ và chính xác hơn.
+`;
+
+function addSearchDecisionToPrompt(basePrompt: string): string {
+  return `
+  ${basePrompt}
+  
+  ${search_prompt}
+  
+  Chỉ trả về JSON thoả mãn schema, không giải thích gì thêm.
+  `;
+}
+
+function addNoteToPrompt(basePrompt: string): string {
+  return `
+  ${basePrompt}
+
+  Chỉ trả về JSON thoả mãn schema, không giải thích gì thêm.
+  `;
+}
+
+export function buildPrompt(
+  target_category: SchemaType,
+  enableSearch: boolean,
+): string {
+  switch (target_category) {
+    case "pesticide":
+      return enableSearch
+        ? addSearchDecisionToPrompt(pesticide_prompt)
+        : addNoteToPrompt(pesticide_prompt);
+    case "fertilizer":
+      return enableSearch
+        ? addSearchDecisionToPrompt(fertilizer_prompt)
+        : addNoteToPrompt(fertilizer_prompt);
+    case "fish_feed":
+      return feed_prompt; // fish_feed don't have search feature yet
+    default:
+      throw new Error(`Unsupported category: ${target_category}`);
+  }
+}

@@ -7,6 +7,7 @@ import type {
   ProductInfo,
   ProductCategory,
   SearchMetadata,
+  SearchMode,
 } from "./apis/imageApi";
 import { LoadingIndicator } from "./components/LoadingIndicator";
 import {
@@ -29,7 +30,7 @@ function App() {
   const [error, setError] = useState<string>("");
 
   // Search enrichment state
-  const [searchEnabled, setSearchEnabled] = useState(false);
+  const [searchMode, setSearchMode] = useState<SearchMode>("none");
   const [originalData, setOriginalData] = useState<ProductInfo | null>(null);
   const [searchMetadata, setSearchMetadata] = useState<SearchMetadata | null>(
     null,
@@ -51,18 +52,19 @@ function App() {
     setError("");
 
     try {
-      const shouldSearch = searchEnabled && isSearchableCategory(category);
+      const shouldSearch =
+        searchMode !== "none" && isSearchableCategory(category);
 
       console.log(
         "📤 Gửi yêu cầu đến:",
-        `/api/image/analyze?category=${category}${shouldSearch ? "&search=true" : ""}`,
+        `/api/image/analyze?category=${category}${shouldSearch ? `&${searchMode === "always" ? "alwaysSearch" : "interactiveSearch"}=true` : ""}`,
       );
 
-      // Single API call — if search is enabled, backend returns both enriched + raw
+      // Single API call — if search is enabled, backend returns enriched + raw
       const response = await uploadMultipleImagesForAnalysis(
         selectedFiles,
         category,
-        shouldSearch,
+        shouldSearch ? searchMode : "none",
       );
 
       console.log("📥 Phản hồi từ server:", response);
@@ -158,8 +160,8 @@ function App() {
                 onFilesSelected={handleFilesSelected}
                 category={category}
                 onCategoryChange={setCategory}
-                searchEnabled={searchEnabled}
-                onSearchEnabledChange={setSearchEnabled}
+                searchMode={searchMode}
+                onSearchModeChange={setSearchMode}
                 isLoading={false}
               />
               <button
@@ -188,7 +190,9 @@ function App() {
                     {searchMetadata?.search_status === "enriched" &&
                       showEnriched && (
                         <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
-                          Đã tra cứu thành công
+                          {searchMode === "interactive"
+                            ? "Tra cứu thông minh"
+                            : "Đã tra cứu"}
                         </span>
                       )}
                   </div>

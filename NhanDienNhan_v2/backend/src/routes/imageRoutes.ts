@@ -6,12 +6,7 @@ import {
   processImagesWithOpenAI_chatCompletions,
   processImagesTest,
 } from "../utils/imageProcessor.js";
-import {
-  pesticide_prompt,
-  feed_prompt,
-  fertilizer_prompt,
-  test_prompt,
-} from "../utils/prompts.js";
+import { buildPrompt, test_prompt } from "../utils/prompts.js";
 import { enrichWithSearch } from "../services/search/index.js";
 
 const router = express.Router();
@@ -96,35 +91,31 @@ router.post("/analyze", async (req: Request, res: Response) => {
     const schemaType: SchemaType = req.query.category as SchemaType;
     const isParsed = req.query.parsed === "true";
     const formatDates = req.query.formatDates === "true";
-    // New optional flag: ?search=true enables online database enrichment
-    const searchEnabled = req.query.search === "true";
+
+    // ── Search mode ──────────────────────────────────────────────
+    const alwaysSearch      = req.query.alwaysSearch      === "true";
+    const interactiveSearch = req.query.interactiveSearch === "true";
+    // alwaysSearch takes precedence if both are set
+    const searchMode: "always" | "interactive" | "none" =
+      alwaysSearch ? "always" : interactiveSearch ? "interactive" : "none";
+    // ─────────────────────────────────────────────────────────────
+
     console.log(
       "Processing images for category:",
       schemaType,
       "formatDates:",
       formatDates,
-      "searchEnabled:",
-      searchEnabled,
+      "searchMode:",
+      searchMode,
     );
 
     const files = req.files as Express.Multer.File[];
 
     console.log("Files received:", files.length);
 
-    let prompt = "";
-    switch (schemaType) {
-      case "fish_feed":
-        prompt = feed_prompt;
-        break;
-      case "pesticide":
-        prompt = pesticide_prompt;
-        break;
-      case "fertilizer":
-        prompt = fertilizer_prompt;
-        break;
-      default:
-        prompt = pesticide_prompt; // default to pesticide prompt if category is missing or unrecognized
-    }
+    // buildPrompt selects the correct base prompt and embeds the search
+    // decision instructions when interactiveSearch mode is active
+    const prompt = buildPrompt(schemaType, searchMode === "interactive");
 
     const imageBuffers = files.map((file) => file.buffer);
     const imageTypes = files.map((file) => file.mimetype);
@@ -136,26 +127,57 @@ router.post("/analyze", async (req: Request, res: Response) => {
       schemaType,
       isParsed,
       formatDates,
+      /* withSearchSchema */ searchMode === "interactive",
     );
 
-    // ── Online search enrichment (optional) ──────────────────────
-    // Only runs when ?search=true and category supports it.
-    // Failures are handled inside enrichWithSearch and never propagate.
-    const RETURN_BOTH_RAW_AND_ENRICHED = true; // Set to true to include both original and enriched data in response
+    // ── Online search enrichment ──────────────────────────────────
+    // alwaysSearch   → always enrich (if category supports it)
+    // interactiveSearch → hybrid gate: enrich if LLM says so OR
+    //                     if critical fields are missing
+    const RETURN_BOTH_RAW_AND_ENRICHED = true;
     let responseData = result.response;
     let searchMetadata: object | undefined;
 
-    if (
-      searchEnabled &&
-      (schemaType === "pesticide" || schemaType === "fertilizer")
-    ) {
+    const isSearchableCategory =
+      schemaType === "pesticide" || schemaType === "fertilizer";
+
+    let shouldEnrich = false;
+    let searchDecision: { needs_web_search: boolean; search_reason: string | null } | undefined;
+
+    if (isSearchableCategory) {
+      if (searchMode === "always") {
+        shouldEnrich = true;
+      } else if (searchMode === "interactive") {
+        // Parse the extraction result to inspect fields and LLM decision
+        const extractionObj: any =
+          typeof responseData === "string"
+            ? JSON.parse(responseData)
+            : responseData;
+
+        searchDecision = extractionObj?.search_decision ?? undefined;
+        const data = extractionObj?.data;
+
+        const llmWantsSearch = searchDecision?.needs_web_search === true;
+        const missingIngredients =
+          !data?.ingredients || data.ingredients.length === 0;
+        const missingInterval = data?.pre_harvest_interval_days == null;
+
+        shouldEnrich = llmWantsSearch || missingIngredients || missingInterval;
+        console.log(
+          "Interactive search gate:",
+          { llmWantsSearch, missingIngredients, missingInterval, shouldEnrich },
+        );
+      }
+    }
+
+    if (shouldEnrich) {
       // Ensure we have a parsed object to work with
       const extractionObject: object =
         typeof responseData === "string"
           ? (JSON.parse(responseData) as object)
           : (responseData as object);
 
-      const enrichment = await enrichWithSearch(extractionObject, schemaType);
+      const enrichment = await enrichWithSearch(extractionObject, schemaType as "pesticide" | "fertilizer");
       searchMetadata = enrichment.searchMetadata;
 
       // Re-serialize to match the original isParsed contract
@@ -169,11 +191,15 @@ router.post("/analyze", async (req: Request, res: Response) => {
       success: true,
       data: {
         response: responseData,
-        ...(RETURN_BOTH_RAW_AND_ENRICHED && searchEnabled
+        ...(RETURN_BOTH_RAW_AND_ENRICHED && shouldEnrich
           ? { raw: result.response }
           : {}),
         totalImages: files.length,
         ...(searchMetadata ? { search_metadata: searchMetadata } : {}),
+        // Expose the LLM's search decision for debugging (interactiveSearch only)
+        ...(searchMode === "interactive" && searchDecision !== undefined
+          ? { search_decision: searchDecision }
+          : {}),
       },
     });
   } catch (error: any) {

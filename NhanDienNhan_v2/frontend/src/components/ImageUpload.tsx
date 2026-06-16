@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { Upload, X } from "lucide-react";
-import type { ProductCategory } from "../apis/imageApi";
+import type { ProductCategory, SearchMode } from "../apis/imageApi";
 import {
   Select,
   SelectContent,
@@ -8,14 +8,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { Switch } from "./ui/switch";
 
 interface ImageUploadProps {
   onFilesSelected: (files: File[]) => void;
   category: ProductCategory;
   onCategoryChange: (category: ProductCategory) => void;
-  searchEnabled: boolean;
-  onSearchEnabledChange: (enabled: boolean) => void;
+  searchMode: SearchMode;
+  onSearchModeChange: (mode: SearchMode) => void;
   isLoading?: boolean;
 }
 
@@ -32,8 +31,8 @@ export function ImageUpload({
   onFilesSelected,
   category,
   onCategoryChange,
-  searchEnabled,
-  onSearchEnabledChange,
+  searchMode,
+  onSearchModeChange,
   isLoading = false,
 }: ImageUploadProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -165,22 +164,32 @@ export function ImageUpload({
         </Select>
       </div>
 
-      {/* Search Toggle — only for pesticide/fertilizer */}
+      {/* Search Mode — only for pesticide/fertilizer */}
       {isSearchableCategory(category) && (
-        <div className="flex items-center justify-between px-4 py-3 bg-blue-50 rounded-lg border border-blue-100">
-          <div>
-            <p className="text-sm font-medium text-gray-900">
-              🔍 Tra cứu thông tin online
-            </p>
-            <p className="text-xs text-gray-500">
-              Đối chiếu với cơ sở dữ liệu nhà nước
-            </p>
+        <div className="space-y-2">
+          <p className="text-sm font-semibold text-gray-900">🔍 Tra cứu thông tin online</p>
+          <div className="grid grid-cols-3 gap-2">
+            {([
+              { mode: "none"        as SearchMode, label: "Không",          desc: "Chỉ dùng ảnh" },
+              { mode: "always"      as SearchMode, label: "Luôn tra cứu",   desc: "Bổ sung từ CSDL nhà nước" },
+              { mode: "interactive" as SearchMode, label: "Thông minh",      desc: "Tra cứu khi thiếu thông tin" },
+            ] as const).map(({ mode, label, desc }) => (
+              <button
+                key={mode}
+                type="button"
+                disabled={isLoading}
+                onClick={() => onSearchModeChange(mode)}
+                className={`flex flex-col items-center text-center p-2.5 rounded-lg border-2 transition-all text-xs ${
+                  searchMode === mode
+                    ? "border-blue-500 bg-blue-50 text-blue-700"
+                    : "border-gray-200 bg-white text-gray-600 hover:border-blue-300 hover:bg-blue-50/50"
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                <span className="font-semibold text-[11px] leading-tight">{label}</span>
+                <span className="text-[10px] text-gray-400 mt-0.5 leading-tight">{desc}</span>
+              </button>
+            ))}
           </div>
-          <Switch
-            checked={searchEnabled}
-            onCheckedChange={onSearchEnabledChange}
-            disabled={isLoading}
-          />
         </div>
       )}
 
