@@ -77,7 +77,7 @@ export interface MultipleImagesResponse {
     raw?: string; // Original extraction before search enrichment
     totalImages: number;
     search_metadata?: SearchMetadata;
-    // LLM's search decision (only present in interactiveSearch mode)
+    // LLM's search decision (only present when searchMode is interactive)
     search_decision?: { needs_web_search: boolean; search_reason: string | null };
   };
   message?: string;
@@ -216,8 +216,8 @@ export const uploadMultipleImagesForAnalysis = async (
     url.searchParams.append("category", category);
     url.searchParams.append("parsed", "true");
     url.searchParams.append("formatDates", "true");
-    if (searchMode === "always")      url.searchParams.append("alwaysSearch",      "true");
-    if (searchMode === "interactive") url.searchParams.append("interactiveSearch", "true");
+    const mappedMode = searchMode === "none" ? "off" : searchMode;
+    url.searchParams.append("searchMode", mappedMode);
 
     const response = await fetch(url.toString(), {
       method: "POST",

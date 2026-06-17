@@ -57,7 +57,7 @@ function App() {
 
       console.log(
         "📤 Gửi yêu cầu đến:",
-        `/api/image/analyze?category=${category}${shouldSearch ? `&${searchMode === "always" ? "alwaysSearch" : "interactiveSearch"}=true` : ""}`,
+        `/api/image/analyze?category=${category}&searchMode=${shouldSearch ? searchMode : "off"}`,
       );
 
       // Single API call — if search is enabled, backend returns enriched + raw

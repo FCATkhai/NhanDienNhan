@@ -93,11 +93,13 @@ router.post("/analyze", async (req: Request, res: Response) => {
     const formatDates = req.query.formatDates === "true";
 
     // ── Search mode ──────────────────────────────────────────────
-    const alwaysSearch      = req.query.alwaysSearch      === "true";
-    const interactiveSearch = req.query.interactiveSearch === "true";
-    // alwaysSearch takes precedence if both are set
+    const querySearchMode = req.query.searchMode;
     const searchMode: "always" | "interactive" | "none" =
-      alwaysSearch ? "always" : interactiveSearch ? "interactive" : "none";
+      querySearchMode === "always"
+        ? "always"
+        : querySearchMode === "interactive"
+        ? "interactive"
+        : "none";
     // ─────────────────────────────────────────────────────────────
 
     console.log(
@@ -114,7 +116,7 @@ router.post("/analyze", async (req: Request, res: Response) => {
     console.log("Files received:", files.length);
 
     // buildPrompt selects the correct base prompt and embeds the search
-    // decision instructions when interactiveSearch mode is active
+    // decision instructions when interactive search mode is active
     const prompt = buildPrompt(schemaType, searchMode === "interactive");
 
     const imageBuffers = files.map((file) => file.buffer);
@@ -131,9 +133,9 @@ router.post("/analyze", async (req: Request, res: Response) => {
     );
 
     // ── Online search enrichment ──────────────────────────────────
-    // alwaysSearch   → always enrich (if category supports it)
-    // interactiveSearch → hybrid gate: enrich if LLM says so OR
-    //                     if critical fields are missing
+    // searchMode === always     → always enrich (if category supports it)
+    // searchMode === interactive → hybrid gate: enrich if LLM says so OR
+    //                             if critical fields are missing
     const RETURN_BOTH_RAW_AND_ENRICHED = true;
     let responseData = result.response;
     let searchMetadata: object | undefined;
@@ -196,7 +198,7 @@ router.post("/analyze", async (req: Request, res: Response) => {
           : {}),
         totalImages: files.length,
         ...(searchMetadata ? { search_metadata: searchMetadata } : {}),
-        // Expose the LLM's search decision for debugging (interactiveSearch only)
+        // Expose the LLM's search decision for debugging (interactive searchMode only)
         ...(searchMode === "interactive" && searchDecision !== undefined
           ? { search_decision: searchDecision }
           : {}),
