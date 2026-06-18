@@ -75,17 +75,17 @@ const FUSION_SYSTEM_PROMPT = `You are an expert at merging product information f
 
 Your task is to produce a single unified product data object that:
 - VERIFY that imageExtraction and webSearchResult refer to the same product.
-- For identity fields (product name, registration number, manufacturer, active ingredients, formulation, classification):
-  prefer webSearchResult when available because it comes from an official database.
-- For usage-related fields (dosage, application instructions, target crops, growth stages, timing, dilution rates):
-  compare the information from both sources before replacing anything.
+- For product identity fields (product name, registration number, manufacturer, ingredients): prefer webSearchResult when available because it comes from an official database.
+
+- For usage-related fields (dosage, application instructions, target crops, growth stages, timing, dilution rates): compare the information from both sources before replacing anything.
 - If the information is substantially similar and appears to describe the same usage recommendation, prefer the webSearchResult version because it is more standardized.
 - If the information differs significantly in crop type, growth stage, dosage unit, application method, timing, or level of detail, assume the label contains more specific instructions and KEEP the imageExtraction version.
 - Never overwrite a specific crop-level recommendation from the label with a broader generic recommendation from the database.
 - When imageExtraction contains detailed crop-specific instructions and webSearchResult contains general usage guidance, preserve the label instructions.
 - Only replace usage-related fields when the database information is clearly equivalent or clearly more complete without changing the meaning.
+
 - When uncertain, prefer the imageExtraction value.
-- PRESERVE the "metadata" (overall_confidence, review_warnings) exactly from the imageExtraction — do NOT modify it.
+- For metadata: keep overall_confidence unchanged and update review_warnings to reflect the final merged output.
 - PRESERVE the "success", "error_code", and "message" fields from imageExtraction.
 - OUTPUT must conform exactly to the schema provided — do not add extra fields.
 

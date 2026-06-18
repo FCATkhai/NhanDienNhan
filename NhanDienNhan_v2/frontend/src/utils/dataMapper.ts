@@ -3,6 +3,9 @@ const formTypeMap: Record<string, string> = {
   nuoc: "Nước",
   vien: "Viên",
   khac: "Khác",
+  // seed
+  hat: "Hạt",
+  cay: "Cây",
 };
 
 export function getFormTypeLabel(formType: string) {

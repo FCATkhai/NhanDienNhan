@@ -19,10 +19,55 @@ interface ImageUploadProps {
 }
 
 const MAX_FILES = 3;
-const SAMPLE_IMAGES = [
-  { name: "RidomilGold 1.jpg", path: "/sample-images/RidomilGold 1.jpg" },
-  { name: "RidomilGold 2.jpg", path: "/sample-images/RidomilGold 2.jpg" },
-];
+const SAMPLE_IMAGES_BY_CATEGORY: Record<
+  ProductCategory,
+  Array<{ name: string; path: string }>
+> = {
+  pesticide: [
+    {
+      name: "RidomilGold 1.jpg",
+      path: "/sample-images/pesticide/RidomilGold 1.jpg",
+    },
+    {
+      name: "RidomilGold 2.jpg",
+      path: "/sample-images/pesticide/RidomilGold 2.jpg",
+    },
+  ],
+  fertilizer: [
+    {
+      name: "AMINOLOM 40 1.jpg",
+      path: "/sample-images/fertilizer/AMINOLOM 40 1.jpg",
+    },
+    {
+      name: "AMINOLOM 40 2.jpg",
+      path: "/sample-images/fertilizer/AMINOLOM 40 2.jpg",
+    },
+    {
+      name: "AMINOLOM 40 3.jpg",
+      path: "/sample-images/fertilizer/AMINOLOM 40 3.jpg",
+    },
+  ],
+  fish_feed: [
+    {
+      name: "mekong 1.jpg",
+      path: "/sample-images/fish_feed/mekong 1.jpg",
+    },
+    {
+      name: "mekong 2.jpg",
+      path: "/sample-images/fish_feed/mekong 2.jpg",
+    },
+  ],
+  seed: [
+    {
+      name: "IMG_9237.jpg",
+      path: "/sample-images/seed/IMG_9237.jpg",
+    },
+    {
+      name: "IMG_9238.jpg",
+      path: "/sample-images/seed/IMG_9238.jpg",
+    },
+  ],
+};
 
 const isSearchableCategory = (cat: ProductCategory) =>
   cat === "pesticide" || cat === "fertilizer";
@@ -160,6 +205,7 @@ export function ImageUpload({
             </SelectItem>
             <SelectItem value="fertilizer">🌿 Phân bón</SelectItem>
             <SelectItem value="fish_feed">🐟 Thức ăn thủy sản</SelectItem>
+            <SelectItem value="seed">🌱 Hạt giống</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -263,7 +309,7 @@ export function ImageUpload({
           Ảnh mẫu (bấm để thêm)
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {SAMPLE_IMAGES.map((sample) => (
+          {(SAMPLE_IMAGES_BY_CATEGORY[category] || []).map((sample) => (
             <button
               key={sample.name}
               onClick={() => addSampleImage(sample.path, sample.name)}

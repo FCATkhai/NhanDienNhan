@@ -1,2 +1,2 @@
 // export schema type
-export type SchemaType = "fish_feed" | "pesticide" | "fertilizer";
+export type SchemaType = "fish_feed" | "pesticide" | "fertilizer" | "seed";

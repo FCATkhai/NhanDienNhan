@@ -4,6 +4,7 @@ import { zodTextFormat, zodResponseFormat } from "openai/helpers/zod";
 import { SchemaType } from "@backend/validation/types";
 import {
   FishFeedResponseSchema,
+  SeedResponseSchema,
   PesticideResponseSchema,
   FertilizerResponseSchema,
   PesticideResponseSchemaWithSearch,
@@ -29,6 +30,7 @@ const schemaTypeToModelMap: {
   fish_feed: "gemini-3-flash-preview",
   pesticide: "gemini-3.1-flash-lite",
   fertilizer: "gemini-3.1-flash-lite",
+  seed: "gemini-3.1-flash-lite",
 };
 
 export const processImagesWithOpenAI = async (
@@ -81,7 +83,9 @@ export const processImagesWithOpenAI = async (
             ? FishFeedResponseSchema
             : schemaType === "fertilizer"
               ? FertilizerResponseSchema
-              : PesticideResponseSchema,
+              : schemaType === "seed"
+                ? SeedResponseSchema
+                : PesticideResponseSchema,
           "schema",
         ),
       },
@@ -155,9 +159,11 @@ export const processImagesWithOpenAI_chatCompletions = async (
           ? withSearchSchema
             ? FertilizerResponseSchemaWithSearch
             : FertilizerResponseSchema
-          : withSearchSchema
-            ? PesticideResponseSchemaWithSearch
-            : PesticideResponseSchema;
+          : schemaType === "seed"
+            ? SeedResponseSchema
+            : withSearchSchema
+              ? PesticideResponseSchemaWithSearch
+              : PesticideResponseSchema;
 
     // Gọi hàm qua client.chat.completions.create
     const response = await client.chat.completions.create({

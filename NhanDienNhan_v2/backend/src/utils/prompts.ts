@@ -1,7 +1,7 @@
 import type { SchemaType } from "@backend/validation/types";
 
 export const pesticide_prompt = `
-Dựa vào hình ảnh, hãy trích xuất thông tin sản phẩm. 
+Dựa vào hình ảnh, hãy trích xuất thông tin sản phẩm thuốc bảo vệ thực vật/thuốc thuỷ sản.
 
 QUY TẮC TRÍCH XUẤT (TUYỆT ĐỐI TUÂN THỦ):
 1. TRÍCH XUẤT THÀNH PHẦN: Khi quét mục "THÀNH PHẦN", phải trích xuất ĐẦY ĐỦ tất cả các dòng xuất hiện. Có bao nhiêu gạch đầu dòng/thành phần thì phải tạo bấy nhiêu object trong mảng.
@@ -45,7 +45,7 @@ Nếu ảnh quá mờ, không đọc được chữ, không phải sản phẩm 
 // `;
 
 export const fertilizer_prompt = `
-Dựa vào hình ảnh, hãy trích xuất thông tin sản phẩm. 
+Dựa vào hình ảnh, hãy trích xuất thông tin sản phẩm phân bón. 
 
 QUY TẮC TRÍCH XUẤT (TUYỆT ĐỐI TUÂN THỦ):
 1. TRÍCH XUẤT THÀNH PHẦN: Khi quét mục "THÀNH PHẦN", phải trích xuất ĐẦY ĐỦ tất cả các dòng xuất hiện. Có bao nhiêu gạch đầu dòng/thành phần thì phải tạo bấy nhiêu object trong mảng.
@@ -68,7 +68,7 @@ Nếu ảnh quá mờ, không đọc được chữ, không phải sản phẩm 
 
 // test prompt
 export const feed_prompt = `
-Dựa vào hình ảnh, hãy trích xuất thông tin sản phẩm.
+Dựa vào hình ảnh, hãy trích xuất thông tin sản phẩm thức ăn thủy sản.
 
 QUY TẮC TRÍCH XUẤT (TUYỆT ĐỐI TUÂN THỦ):
 1. CHỈ TRÍCH XUẤT NHỮNG GÌ NHÌN THẤY RÕ RÀNG TRÊN ẢNH. Tuyệt đối không tự ý suy luận, nội suy hoặc đoán dữ liệu dựa trên ngữ cảnh xung quanh (Ví dụ: Không được tự đoán thông số của một mã bị che dựa trên các mã liền kề).
@@ -129,6 +129,31 @@ Nếu ảnh quá mờ toàn bộ, không đọc được bất kỳ chữ nào, 
 Chỉ trả về JSON thoả mãn schema, không giải thích gì thêm.
 `;
 
+export const seed_prompt = `
+Dựa vào hình ảnh, hãy trích xuất thông tin sản phẩm hạt giống.
+
+QUY TẮC TRÍCH XUẤT (TUYỆT ĐỐI TUÂN THỦ):
+1. TRÍCH XUẤT NGÀY THÁNG (mfg_date, exp_date):
+   - Ngày sản xuất (mfg_date) đôi khi được in phun/đóng dấu tại mục "Ngày thu hoạch" hoặc "Ngày đóng gói".
+   - Khi tìm giá trị cho "Ngày sản xuất" (NSX) hoặc "Hạn sử dụng" (HSD), hãy chú ý rằng các ký tự số in phun (định dạng DD/MM/YY hoặc DD MM YY) có thể bị in lệch xuống dưới, lệch lên trên so với cụm chữ "NSX:" / "HSD:".
+   - Hãy quét toàn bộ khu vực lân cận (bên phải, phía dưới, hoặc dòng kế tiếp ngay bên dưới chữ NSX) để tìm cụm số ngày tháng tương ứng.
+
+2. TRÍCH XUẤT THÔNG TIN HẠT GIỐNG (seed):
+- Thời gian sinh trưởng (growth_duration): Nếu nhãn ghi chi tiết theo từng vụ (Ví dụ: 'Vụ Thu Đông: 95-100 ngày; Vụ Đông Xuân: 100-105 ngày'), hãy gom và lấy toàn bộ chuỗi text đó, không tự ý bỏ bớt vụ nào.
+- Chỉ tiêu chất lượng (quality_criteria): Quét toàn bộ bảng tiêu chuẩn kỹ thuật. Tách rõ tên chỉ tiêu, con số, và đơn vị tính (nếu đơn vị % dính liền vào tên chỉ tiêu như 'Độ sạch, % khối lượng', hãy bóc tách sạch sẽ: name = 'Độ sạch', value = '99,0', unit = '%').
+
+QUY TẮC BÁO CÁO CẢNH BÁO (REVIEW WARNINGS):
+- Đối với các trường dữ liệu, nếu bạn cảm thấy không trích xuất được do ảnh mờ, chói sáng, bị che khuất hoặc có watermark (chữ chìm) làm mất nét chữ, hãy để giá trị là null và thêm đường dẫn của trường đó vào mảng review_warnings trong metadata. Nếu tự tin, hãy giữ mảng review_warnings trống.
+- Lỗi toàn cục (Ảnh nằm ngang, lóa sáng toàn bộ ảnh): Thêm một object vào review_warnings với "field" = null, "issue" = 'IMAGE_ROTATED' hoặc mã lỗi phù hợp, và giải thích trong "message".
+
+XỬ LÝ ẢNH LỖI NẶNG:
+Nếu ảnh quá mờ, không đọc được chữ, không phải sản phẩm hạt giống hoặc không có nhãn:
+- success = false
+- điền error_code phù hợp
+- message mô tả lỗi cho UI
+- các field còn lại để null hoặc mảng rỗng
+`;
+
 export const test_prompt = `
 Is this pesticide label correctly oriented (text readable, not rotated/flipped)? Reply ONLY with JSON: {"degrees": 0, "confident": true} degrees = how many degrees CW to rotate to fix it (0/90/180/270).
 `;
@@ -185,6 +210,8 @@ export function buildPrompt(
         : addNoteToPrompt(fertilizer_prompt);
     case "fish_feed":
       return feed_prompt; // fish_feed don't have search feature yet
+    case "seed":
+      return seed_prompt; // seed don't have search feature yet
     default:
       throw new Error(`Unsupported category: ${target_category}`);
   }

@@ -118,7 +118,7 @@ const packageMap = {
 // Dữ liệu chung của tất cả sản phẩm
 const BaseProductDataSchema = z.object({
   category: z
-    .enum(["fish_feed", "pesticide", "fertilizer", "unknown"])
+    .enum(["fish_feed", "pesticide", "fertilizer", "seed", "unknown"])
     .describe("Danh mục sản phẩm"),
   form_type: z
     .enum(["bot", "nuoc", "vien", "khac"])
@@ -142,7 +142,6 @@ const BaseProductDataSchema = z.object({
     .enum(Object.keys(packageMap) as (keyof typeof packageMap)[])
     .nullable()
     .describe(`Quy cách đóng gói: ${Object.values(packageMap).join(", ")}`),
-  uses: z.string().nullable().describe("Công dụng (nếu có)"),
   mfg_date: z.string().nullable().describe("Ngày sản xuất (NSX)"),
   exp_date: z
     .string()
@@ -178,6 +177,7 @@ export const PesticideDataSchema = BaseProductDataSchema.extend({
     .string()
     .nullable()
     .describe("Số đăng ký, thường có dạng: (số)/CNĐKT-BVTV"),
+  uses: z.string().nullable().describe("Công dụng (nếu có)"),
   ingredients: z
     .array(IngredientSchema)
     .nullable()
@@ -247,6 +247,7 @@ export const FertilizerDataSchema = BaseProductDataSchema.extend({
     .describe(
       "Mã số phân bón, thường là dãy 4-5 số. Ví dụ: Mã số phân bón/MSPB: 10699",
     ),
+  uses: z.string().nullable().describe("Công dụng (nếu có)"),
   ingredients: z
     .array(IngredientSchema)
     .nullable()
@@ -325,6 +326,7 @@ export const FishFeedDataSchema = BaseProductDataSchema.extend({
   category: z.literal("fish_feed").describe("Danh mục sản phẩm"),
   product_type: z.string().nullable().describe("Loại sản phẩm"),
   species: z.string().nullable().describe("Loài thủy sản áp dụng"),
+  uses: z.string().nullable().describe("Công dụng (nếu có)"),
   ingredients: z.string().nullable().describe("Thành phần nguyên liệu"),
   variant_code: z.string().nullable().describe("Mã biến thể của sản phẩm"),
   nutrition_facts: z
@@ -367,4 +369,77 @@ export const FishFeedResponseSchema = BaseResponseSchema.extend({
   data: FishFeedDataSchema.nullable().describe(
     "Dữ liệu sản phẩm thức ăn thủy sản",
   ),
+});
+
+// --- Hạt GIỐNG (SEED) ---
+
+// Cấu trúc cho từng chỉ tiêu chất lượng hạt giống (Ví dụ: Độ sạch, Tỉ lệ nảy mầm)
+export const SeedQualityCriterionSchema = z.object({
+  name: z
+    .string()
+    .describe(
+      "Tên chỉ tiêu chất lượng (Ưu tiên tiếng Việt, VD: 'Độ sạch', 'Tỉ lệ nảy mầm')",
+    ),
+  value: z
+    .string()
+    .describe(
+      "Giá trị tiêu chuẩn/kết quả tương ứng. Nếu có giới hạn như 'không nhỏ hơn' thì điền thêm ≥, 'không lớn hơn' thì điền thêm ≤. (VD: '80', '≥ 99,0', '≤ 0,5')",
+    ),
+  unit: z
+    .string()
+    .nullable()
+    .describe("Đơn vị tính của chỉ tiêu nếu có (VD: '%', 'hạt/kg')"),
+});
+
+export const SeedDataSchema = BaseProductDataSchema.extend({
+  category: z.literal("seed").describe("Danh mục sản phẩm"),
+
+  // override form_type
+  form_type: z
+    .enum(["hat", "cay", "khac"])
+    .nullable()
+    .describe("Dạng vật lý/thương phẩm của sản phẩm (hạt, cây, khác)"),
+
+  // ===== THÔNG TIN ĐẶC THÙ CỦA GIỐNG =====
+
+  cropping_season: z
+    .array(z.string())
+    .nullable()
+    .describe(
+      "Vụ mùa trồng/áp dụng (Ví dụ trích từ nhãn: ['Vụ Thu Đông', 'Vụ Đông Xuân'])",
+    ),
+
+  growth_duration: z
+    .string()
+    .nullable()
+    .describe(
+      "Thời gian sinh trưởng của giống cây. Trích nguyên văn cả khoảng thời gian nếu có (Ví dụ: '95-100 ngày', '100-105 ngày')",
+    ),
+
+  lot_number: z.string().nullable().describe("Mã số lô giống"),
+
+  manufacturer: z
+    .string()
+    .nullable()
+    .describe(
+      "Nơi sản xuất / Trại nhân giống (Ví dụ: 'Trại Lúa Giống HỒ QUANG')",
+    ),
+
+  origin: z
+    .string()
+    .nullable()
+    .describe("Xuất xứ của giống cây (Ví dụ: 'Sóc Trăng', 'Việt Nam')"),
+
+  // ===== MẢNG CÁC CHỈ TIÊU CHẤT LƯỢNG (BẢNG QCVN) =====
+
+  quality_criteria: z
+    .array(SeedQualityCriterionSchema)
+    .nullable()
+    .describe(
+      "Danh sách các chỉ tiêu kỹ thuật/chất lượng hạt giống. BẮT BUỘC lấy đủ các dòng trong bảng bao gồm cả ô gộp nếu có.",
+    ),
+});
+
+export const SeedResponseSchema = BaseResponseSchema.extend({
+  data: SeedDataSchema.nullable().describe("Dữ liệu sản phẩm hạt giống"),
 });

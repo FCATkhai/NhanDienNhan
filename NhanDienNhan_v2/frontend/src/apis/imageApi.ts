@@ -5,7 +5,7 @@
 const API_BASE_URL =
   import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
-export type ProductCategory = "pesticide" | "fertilizer" | "fish_feed";
+export type ProductCategory = "pesticide" | "fertilizer" | "fish_feed" | "seed";
 export type SearchMode = "none" | "always" | "interactive";
 
 export interface ReviewWarning {
@@ -51,6 +51,13 @@ export interface ProductInfo {
     guide?: Array<{ name: string; value: string }>;
   };
   confidence_score?: number;
+  // Seed fields
+  cropping_season?: string[] | null;
+  growth_duration?: string | null;
+  lot_number?: string | null;
+  manufacturer?: string | null;
+  origin?: string | null;
+  quality_criteria?: Array<{ name: string; value: string; unit?: string | null }> | null;
 }
 
 export interface ImageAnalysisResponse {

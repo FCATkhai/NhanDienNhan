@@ -3,6 +3,7 @@ import { ImageUpload } from "./components/ImageUpload";
 import { PesticideResults } from "./components/PesticideResults";
 import { FishFeedResults } from "./components/FishFeedResults";
 import { FertilizerResults } from "./components/FertilizerResults";
+import { SeedResults } from "./components/SeedResults";
 import type {
   ProductInfo,
   ProductCategory,
@@ -129,6 +130,8 @@ function App() {
         return "bg-linear-to-r from-blue-600 to-blue-700";
       case "fertilizer":
         return "bg-linear-to-r from-emerald-600 to-emerald-700";
+      case "seed":
+        return "bg-linear-to-r from-green-600 to-green-700";
       default:
         return "bg-linear-to-r from-purple-600 to-purple-700";
     }
@@ -223,6 +226,13 @@ function App() {
               )}
               {category === "fish_feed" && (
                 <FishFeedResults
+                  data={displayData}
+                  images={selectedFiles}
+                  onReset={handleReset}
+                />
+              )}
+              {category === "seed" && (
+                <SeedResults
                   data={displayData}
                   images={selectedFiles}
                   onReset={handleReset}

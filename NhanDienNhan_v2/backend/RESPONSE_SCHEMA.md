@@ -6,6 +6,7 @@ Bao gồm khung response chung và trường riêng cho:
 - Thuốc bảo vệ thực vật/thuốc thủy sản (pesticide)
 - Phân bón (fertilizer)
 - Thức ăn thủy sản (fish_feed)
+- Hạt giống (seed)
 
 Lưu ý:
 - Tất cả trường dưới đây có thể xuất hiện kể cả khi giá trị là null.
@@ -29,7 +30,7 @@ thay đổi khi qua production
 
 | Tham số | Kiểu dữ liệu | Mô tả |
 | :--- | :--- | :--- |
-| `category` | string | Danh mục sản phẩm (`pesticide`, `fertilizer`, `fish_feed`). Nếu không truyền, hệ thống mặc định `pesticide`. |
+| `category` | string | Danh mục sản phẩm (`pesticide`, `fertilizer`, `fish_feed`, `seed`). Nếu không truyền, hệ thống mặc định `pesticide`. |
 | `parsed` | boolean | `true`: Trả về dữ liệu dạng JSON object. `false`: Trả về dữ liệu dạng chuỗi JSON stringized (mặc định). |
 | `formatDates` | boolean | `true`: Chuẩn hóa các trường ngày tháng (`mfg_date`, `exp_date`) về định dạng chuẩn `DD/MM/YYYY` nếu có thể. |
 | `searchMode` | string | Chế độ tìm kiếm và làm giàu dữ liệu từ cơ sở dữ liệu chính phủ (`always`, `interactive`, `off`). Mặc định là `off`. (chỉ có ở danh mục `pesticide`, `fertilizer`) |
@@ -68,7 +69,7 @@ Tổng số ảnh đã xử lý trong request.
 
 ---
 
-## 2. Thông tin tìm kiếm (data.search_metadata)
+## 3. Thông tin tìm kiếm (data.search_metadata)
 
 ### search_status (string enum)
 
@@ -89,7 +90,7 @@ Từ khóa đã được sử dụng để tìm kiếm trên web.
 
 ---
 
-## 3. Đối tượng data.response (hoặc data.raw)
+## 4. Đối tượng data.response (hoặc data.raw)
 
 ### success (boolean)
 
@@ -128,7 +129,7 @@ Dữ liệu sản phẩm đã trích xuất. Cấu trúc phụ thuộc danh mụ
 
 ---
 
-## 4. Trường Chung Cho Tất Cả Danh Mục
+## 5. Trường Chung Cho Tất Cả Danh Mục
 
 Những trường này xuất hiện ở mọi danh mục sản phẩm.
 
@@ -138,6 +139,7 @@ Giá trị có thể:
 - fish_feed
 - pesticide
 - fertilizer
+- seed
 - unknown
 
 ### form_type (string enum | null)
@@ -146,6 +148,8 @@ Giá trị có thể:
 - bot
 - nuoc
 - vien
+- hat
+- cay
 - khac
 
 ### registrant (string | null)
@@ -208,7 +212,7 @@ Hạn sử dụng (HSD). Nếu nhãn chỉ ghi khoảng thời gian (ví dụ: "
 
 ---
 
-## 5. Trường Riêng Cho Thuốc BVTV/Thủy Sản (category = "pesticide")
+## 6. Trường Riêng Cho Thuốc BVTV/Thủy Sản (category = "pesticide")
 
 ### product_type (string | null)
 Loại sản phẩm.
@@ -244,7 +248,7 @@ Thời gian cách ly trước thu hoạch (tính bằng ngày).
 
 ---
 
-## 6. Trường Riêng Cho Phân bón (category = "fertilizer")
+## 7. Trường Riêng Cho Phân bón (category = "fertilizer")
 
 ### product_type (string | null)
 Loại sản phẩm.
@@ -277,7 +281,7 @@ Thời gian cách ly trước thu hoạch (tính bằng ngày).
 
 ---
 
-## 7. Trường Riêng Cho Thức Ăn Thủy Sản (category = "fish_feed")
+## 8. Trường Riêng Cho Thức Ăn Thủy Sản (category = "fish_feed")
 
 ### product_type (string | null)
 Loại sản phẩm thức ăn.
@@ -313,9 +317,36 @@ Nếu là string: hướng dẫn chung cho sản phẩm.
 
 ---
 
-## 8. Ví Dụ JSON Và Giải Thích
+## 9. Trường Riêng Cho Hạt Giống (category = "seed")
 
-### 8.1. Ví dụ Pesticide (Đã làm giàu từ web)
+### cropping_season (array | null)
+Danh sách vụ mùa trồng/áp dụng.
+
+### growth_duration (string | null)
+Thời gian sinh trưởng của giống cây.
+
+### lot_number (string | null)
+Mã số lô giống.
+
+### manufacturer (string | null)
+Nơi sản xuất / Trại nhân giống.
+
+### origin (string | null)
+Xuất xứ của giống cây.
+
+### quality_criteria (array | null)
+Danh sách các chỉ tiêu kỹ thuật/chất lượng hạt giống.
+
+Mỗi phần tử trong quality_criteria:
+- name (string): Tên chỉ tiêu chất lượng.
+- value (string): Giá trị tiêu chuẩn/kết quả.
+- unit (string | null): Đơn vị tính.
+
+---
+
+## 10. Ví Dụ JSON Và Giải Thích
+
+### 10.1. Ví dụ Pesticide (Đã làm giàu từ web)
 
 ```json
 {
@@ -352,7 +383,7 @@ Nếu là string: hướng dẫn chung cho sản phẩm.
 }
 ```
 
-### 8.2. Ví dụ Fertilizer (Phân bón - Đã làm giàu từ web)
+### 10.2. Ví dụ Fertilizer (Phân bón - Đã làm giàu từ web)
 
 ```json
 {
@@ -512,7 +543,7 @@ Nếu là string: hướng dẫn chung cho sản phẩm.
 }
 ```
 
-### 8.3. Ví dụ Fish Feed (Thức ăn thủy sản)
+### 10.3. Ví dụ Fish Feed (Thức ăn thủy sản)
 
 ```json
 {
@@ -711,6 +742,79 @@ Nếu là string: hướng dẫn chung cho sản phẩm.
                 "review_warnings": []
             },
             "success": true
+        },
+        "totalImages": 2
+    }
+}
+```
+
+### 10.4. Ví dụ Giống Cây Trồng (Seed)
+
+```json
+{
+    "success": true,
+    "data": {
+        "response": {
+            "success": true,
+            "error_code": "NONE",
+            "message": "Trích xuất thành công",
+            "metadata": {
+                "overall_confidence": 0.95,
+                "review_warnings": [
+                    {
+                        "field": "mfg_date",
+                        "issue": "AMBIGUOUS_VALUE",
+                        "message": "Ngày thu hoạch in mờ, chỉ đọc được phần năm 2025"
+                    }
+                ]
+            },
+            "data": {
+                "category": "Giống lúa",
+                "form_type": "hat",
+                "registrant": "DNTN TM-DV HỒ QUANG",
+                "product_name": "GIỐNG LÚA ST25 CẤP XÁC NHẬN 1",
+                "net_content": "50",
+                "net_unit": "kg",
+                "package_type": "bao",
+                "mfg_date": "2025",
+                "exp_date": "10 tháng kể từ ngày thu hoạch",
+                "cropping_season": [
+                    "Vụ Thu Đông",
+                    "Vụ Đông Xuân",
+                    "Vụ Hè Thu"
+                ],
+                "growth_duration": "Vụ Thu Đông và Đông Xuân 95-100 ngày - Vụ Hè Thu 100-105 ngày",
+                "lot_number": "94.XN1.25.140",
+                "manufacturer": "Trại Lúa Giống HỒ QUANG",
+                "origin": "Sóc Trăng, Việt Nam",
+                "quality_criteria": [
+                    {
+                        "name": "Độ sạch",
+                        "value": "≥ 99,0",
+                        "unit": "%"
+                    },
+                    {
+                        "name": "Hạt khác giống",
+                        "value": "≤ 0,3",
+                        "unit": "%"
+                    },
+                    {
+                        "name": "Hạt cỏ dại",
+                        "value": "≤ 10",
+                        "unit": "hạt/kg"
+                    },
+                    {
+                        "name": "Tỉ lệ nảy mầm",
+                        "value": "≥ 80",
+                        "unit": "%"
+                    },
+                    {
+                        "name": "Độ ẩm",
+                        "value": "≤ 13,5",
+                        "unit": "%"
+                    }
+                ]
+            }
         },
         "totalImages": 2
     }
