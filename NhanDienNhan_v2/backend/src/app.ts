@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import imageRoutes from "./routes/imageRoutes";
+import { errorHandler } from "./middleware/error.middleware";
 
 const app = express();
 
@@ -24,7 +25,7 @@ app.get("/", (req, res) => {
   res.send("Welcome to the Image Analysis API\n");
 });
 
-import { testCallOpenAI } from "@backend/utils/imageProcessor";
+import { testCallOpenAI } from "@backend/services/analyze/imageProcessor";
 app.post("/test-openai", async (req, res) => {
   await testCallOpenAI();
   res.json({ status: "ok", message: "Test completed successfully" });
@@ -34,5 +35,7 @@ app.post("/test-openai", async (req, res) => {
 app.get("/health", (req, res) => {
   res.json({ status: "ok", message: "Server is running" });
 });
+
+app.use(errorHandler);
 
 export default app;

@@ -57,7 +57,11 @@ export interface ProductInfo {
   lot_number?: string | null;
   manufacturer?: string | null;
   origin?: string | null;
-  quality_criteria?: Array<{ name: string; value: string; unit?: string | null }> | null;
+  quality_criteria?: Array<{
+    name: string;
+    value: string;
+    unit?: string | null;
+  }> | null;
 }
 
 export interface ImageAnalysisResponse {
@@ -68,7 +72,6 @@ export interface ImageAnalysisResponse {
     mimeType: string;
   };
   message?: string;
-  error?: string;
 }
 
 export interface SearchMetadata {
@@ -85,7 +88,10 @@ export interface MultipleImagesResponse {
     totalImages: number;
     search_metadata?: SearchMetadata;
     // LLM's search decision (only present when searchMode is interactive)
-    search_decision?: { needs_web_search: boolean; search_reason: string | null };
+    search_decision?: {
+      needs_web_search: boolean;
+      search_reason: string | null;
+    };
   };
   message?: string;
   error?: string;
@@ -188,7 +194,7 @@ export const uploadImageForAnalysis = async (
       const error = await response.json();
       return {
         success: false,
-        error: error.error || "Failed to analyze image",
+        message: error.error || "Failed to analyze image",
       };
     }
 
@@ -196,7 +202,7 @@ export const uploadImageForAnalysis = async (
   } catch (error: any) {
     return {
       success: false,
-      error: error.message || "Network error while uploading image",
+      message: error.message || "Network error while uploading image",
     };
   }
 };

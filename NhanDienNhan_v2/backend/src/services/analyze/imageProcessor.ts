@@ -1,5 +1,3 @@
-import OpenAI from "openai";
-import dotenv from "dotenv";
 import { zodTextFormat, zodResponseFormat } from "openai/helpers/zod";
 import { SchemaType } from "@backend/validation/types";
 import {
@@ -10,19 +8,13 @@ import {
   PesticideResponseSchemaWithSearch,
   FertilizerResponseSchemaWithSearch,
 } from "@backend/validation/productInfo";
-import { formatDatesInResponse } from "./dateProcessor";
-
-dotenv.config();
+import { formatDatesInResponse } from "../../utils/dateProcessor";
+import { client } from "../../utils/llmModel";
 
 // const client = new OpenAI({
 //   apiKey: process.env.wokushop_api_key,
 //   baseURL: "https://llm.wokushop.com/v1/",
 // });
-
-const client = new OpenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-  baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
-});
 
 const schemaTypeToModelMap: {
   [key in SchemaType]: string;
@@ -30,9 +22,13 @@ const schemaTypeToModelMap: {
   fish_feed: "gemini-3-flash-preview",
   pesticide: "gemini-3.1-flash-lite",
   fertilizer: "gemini-3.1-flash-lite",
-  seed: "gemini-3.1-flash-lite",
+  seed: "gemini-3.5-flash",
 };
 
+// Change model when error
+const FALLBACK_MODEL = "gemini-2.5-flash";
+
+// deprecated
 export const processImagesWithOpenAI = async (
   imageBuffers: Buffer[],
   imageTypes: string[],
@@ -166,17 +162,39 @@ export const processImagesWithOpenAI_chatCompletions = async (
               : PesticideResponseSchema;
 
     // Gọi hàm qua client.chat.completions.create
-    const response = await client.chat.completions.create({
-      model: schemaTypeToModelMap[schemaType],
-      messages: [
-        {
-          role: "user",
-          content: [{ type: "text", text: prompt }, ...imageInputs],
-        },
-      ],
-      // Sử dụng zodResponseFormat để ép API trả về JSON đúng với schema
-      response_format: zodResponseFormat(targetSchema, "schema_name"),
-    });
+    let response;
+    try {
+      response = await client.chat.completions.create({
+        model: schemaTypeToModelMap[schemaType],
+        messages: [
+          {
+            role: "user",
+            content: [{ type: "text", text: prompt }, ...imageInputs],
+          },
+        ],
+        // Sử dụng zodResponseFormat để ép API trả về JSON đúng với schema
+        response_format: zodResponseFormat(targetSchema, "schema_name"),
+      });
+    } catch (error: any) {
+      // Fallback logic for 429 (Too Many Requests) or 503 (Service Unavailable)
+      if (error.status === 429 || error.status === 503) {
+        console.warn(
+          `Primary model ${schemaTypeToModelMap[schemaType]} failed with status ${error.status}. Falling back to ${FALLBACK_MODEL}...`,
+        );
+        response = await client.chat.completions.create({
+          model: FALLBACK_MODEL,
+          messages: [
+            {
+              role: "user",
+              content: [{ type: "text", text: prompt }, ...imageInputs],
+            },
+          ],
+          response_format: zodResponseFormat(targetSchema, "schema_name"),
+        });
+      } else {
+        throw error;
+      }
+    }
 
     const outputText = response.choices[0]?.message?.content;
 

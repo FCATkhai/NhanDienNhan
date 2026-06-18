@@ -1,28 +1,13 @@
 // ============================================================
 // Fusion LLM service — merges image extraction + web search results
 // ============================================================
-
-import OpenAI from "openai";
-import dotenv from "dotenv";
 import { zodResponseFormat } from "openai/helpers/zod";
 import {
   PesticideResponseSchema,
   FertilizerResponseSchema,
 } from "@backend/validation/productInfo.js";
 import type { PesticideSearchResult, FertilizerSearchResult } from "./types.js";
-
-dotenv.config();
-
-// Re-use the same OpenAI client configuration as imageProcessor
-// const client = new OpenAI({
-//   apiKey: process.env.wokushop_api_key,
-//   baseURL: "https://llm.wokushop.com/v1/",
-// });
-
-const client = new OpenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-  baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
-});
+import { client } from "@backend/utils/llmModel";
 
 // Use gemini-3.1-flash-lite for the fusion step (good at structured reasoning)
 const FUSION_MODEL = "gemini-3.1-flash-lite";
