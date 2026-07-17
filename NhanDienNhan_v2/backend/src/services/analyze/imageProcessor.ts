@@ -8,7 +8,8 @@ import {
   PesticideResponseSchemaWithSearch,
   FertilizerResponseSchemaWithSearch,
 } from "@backend/validation/productInfo";
-import { ReceiptResponseSchema } from "@backend/validation/receiptInfo";
+// import { ReceiptResponseSchema } from "@backend/validation/receiptInfo.old";
+import { DocumentResponseSchema } from "@backend/validation/receiptInfo";
 import { formatDatesInResponse } from "../../utils/dateProcessor";
 import { client } from "../../utils/llmModel";
 
@@ -79,7 +80,7 @@ export const processImagesWithOpenAI = async (
               : schemaType === "seed"
                 ? SeedResponseSchema
                 : schemaType === "receipt"
-                  ? ReceiptResponseSchema
+                  ? DocumentResponseSchema
                   : PesticideResponseSchema,
           "schema",
         ),
@@ -157,7 +158,7 @@ export const processImagesWithOpenAI_chatCompletions = async (
           : schemaType === "seed"
             ? SeedResponseSchema
             : schemaType === "receipt"
-              ? ReceiptResponseSchema
+              ? DocumentResponseSchema
               : withSearchSchema
                 ? PesticideResponseSchemaWithSearch
                 : PesticideResponseSchema;
@@ -269,7 +270,7 @@ export const processImagesTest = async (
     } else if (schemaType === "fertilizer") {
       targetSchema = FertilizerResponseSchema;
     } else if (schemaType === "receipt") {
-      targetSchema = ReceiptResponseSchema;
+      targetSchema = DocumentResponseSchema;
     }
 
     // Gọi hàm qua client.chat.completions.create
