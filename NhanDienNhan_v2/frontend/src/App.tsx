@@ -4,6 +4,8 @@ import { PesticideResults } from "./components/PesticideResults";
 import { FishFeedResults } from "./components/FishFeedResults";
 import { FertilizerResults } from "./components/FertilizerResults";
 import { SeedResults } from "./components/SeedResults";
+import { ReceiptUpload } from "./components/ReceiptUpload";
+import { ReceiptResults } from "./components/ReceiptResults";
 import type {
   ProductInfo,
   ProductCategory,
@@ -15,107 +17,105 @@ import {
   uploadMultipleImagesForAnalysis,
   parseProductInfo,
 } from "./apis/imageApi";
+import { uploadFilesForReceiptAnalysis } from "./apis/receiptApi";
+import type { ReceiptApiResponse } from "./apis/receiptApi";
 import { Switch } from "./components/ui/switch";
 import "./App.css";
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type AppMode = "product" | "receipt";
 type ViewState = "upload" | "loading" | "results";
 
 const isSearchableCategory = (cat: ProductCategory) =>
   cat === "pesticide" || cat === "fertilizer";
 
+// ─── App ──────────────────────────────────────────────────────────────────────
+
 function App() {
-  const [viewState, setViewState] = useState<ViewState>("upload");
+  // Mode toggle
+  const [appMode, setAppMode] = useState<AppMode>("product");
+
+  // ── Product flow state ──────────────────────────────────────────────────────
+  const [productViewState, setProductViewState] = useState<ViewState>("upload");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [category, setCategory] = useState<ProductCategory>("pesticide");
   const [productData, setProductData] = useState<ProductInfo | null>(null);
-  const [error, setError] = useState<string>("");
-
-  // Search enrichment state
+  const [productError, setProductError] = useState<string>("");
   const [searchMode, setSearchMode] = useState<SearchMode>("none");
   const [originalData, setOriginalData] = useState<ProductInfo | null>(null);
-  const [searchMetadata, setSearchMetadata] = useState<SearchMetadata | null>(
-    null,
-  );
+  const [searchMetadata, setSearchMetadata] = useState<SearchMetadata | null>(null);
   const [showEnriched, setShowEnriched] = useState(true);
+
+  // ── Receipt flow state ──────────────────────────────────────────────────────
+  const [receiptViewState, setReceiptViewState] = useState<ViewState>("upload");
+  const [receiptFiles, setReceiptFiles] = useState<File[]>([]);
+  const [receiptData, setReceiptData] = useState<ReceiptApiResponse | null>(null);
+  const [receiptError, setReceiptError] = useState<string>("");
+
+  // ─── Mode switch ─────────────────────────────────────────────────────────────
+
+  const handleModeSwitch = (mode: AppMode) => {
+    setAppMode(mode);
+  };
+
+  // ─── Product handlers ─────────────────────────────────────────────────────────
 
   const handleFilesSelected = (files: File[]) => {
     setSelectedFiles(files);
-    setError("");
+    setProductError("");
   };
 
-  const handleSubmit = async () => {
+  const handleProductSubmit = async () => {
     if (selectedFiles.length === 0) {
-      setError("Vui lòng chọn ít nhất một ảnh");
+      setProductError("Vui lòng chọn ít nhất một ảnh");
       return;
     }
-
-    setViewState("loading");
-    setError("");
-
+    setProductViewState("loading");
+    setProductError("");
     try {
-      const shouldSearch =
-        searchMode !== "none" && isSearchableCategory(category);
-
-      console.log(
-        "📤 Gửi yêu cầu đến:",
-        `/api/image/analyze?category=${category}&searchMode=${shouldSearch ? searchMode : "off"}`,
-      );
-
-      // Single API call — if search is enabled, backend returns enriched + raw
+      const shouldSearch = searchMode !== "none" && isSearchableCategory(category);
       const response = await uploadMultipleImagesForAnalysis(
         selectedFiles,
         category,
         shouldSearch ? searchMode : "none",
       );
-
-      console.log("📥 Phản hồi từ server:", response);
-
       if (!response.success) {
-        setError(response.message || "Lỗi khi phân tích ảnh");
-        setViewState("upload");
+        setProductError(response.message || "Lỗi khi phân tích ảnh");
+        setProductViewState("upload");
         return;
       }
-
-      // Parse the enriched (or only) result
       const productInfo = parseProductInfo(response);
-      console.log("✅ Thông tin sản phẩm:", productInfo);
-
       setProductData(productInfo);
-
-      // Parse the original (pre-enrichment) result if available
       if (shouldSearch && response.data?.raw) {
         const rawResponse = {
           ...response,
           data: { ...response.data, response: response.data.raw },
         };
-        const rawProductInfo = parseProductInfo(rawResponse);
-        setOriginalData(rawProductInfo);
+        setOriginalData(parseProductInfo(rawResponse));
         setSearchMetadata(response.data.search_metadata ?? null);
         setShowEnriched(true);
       } else {
         setOriginalData(null);
         setSearchMetadata(null);
       }
-
-      setViewState("results");
-    } catch (err) {
-      console.error("❌ Lỗi:", err);
-      setError("Lỗi khi xử lý ảnh. Vui lòng thử lại.");
-      setViewState("upload");
+      setProductViewState("results");
+    } catch {
+      setProductError("Lỗi khi xử lý ảnh. Vui lòng thử lại.");
+      setProductViewState("upload");
     }
   };
 
-  const handleReset = () => {
+  const handleProductReset = () => {
     setSelectedFiles([]);
     setProductData(null);
     setOriginalData(null);
     setSearchMetadata(null);
     setShowEnriched(true);
-    setError("");
-    setViewState("upload");
+    setProductError("");
+    setProductViewState("upload");
   };
 
-  // Determine which data to display (enriched vs original)
   const displayData =
     originalData && productData
       ? showEnriched
@@ -123,141 +123,212 @@ function App() {
         : originalData
       : productData;
 
-  // Button gradient based on category
-  const getButtonGradient = () => {
-    switch (category) {
-      case "fish_feed":
-        return "bg-linear-to-r from-blue-600 to-blue-700";
-      case "fertilizer":
-        return "bg-linear-to-r from-emerald-600 to-emerald-700";
-      case "seed":
-        return "bg-linear-to-r from-green-600 to-green-700";
-      default:
-        return "bg-linear-to-r from-purple-600 to-purple-700";
+  // ─── Receipt handlers ─────────────────────────────────────────────────────────
+
+  const handleReceiptFilesSelected = (files: File[]) => {
+    setReceiptFiles(files);
+    setReceiptError("");
+  };
+
+  const handleReceiptSubmit = async () => {
+    if (receiptFiles.length === 0) {
+      setReceiptError("Vui lòng chọn ít nhất một file");
+      return;
+    }
+    setReceiptViewState("loading");
+    setReceiptError("");
+    try {
+      const response = await uploadFilesForReceiptAnalysis(receiptFiles);
+      if (!response.success) {
+        setReceiptError(response.message || response.error || "Lỗi khi xử lý file");
+        setReceiptViewState("upload");
+        return;
+      }
+      setReceiptData(response);
+      setReceiptViewState("results");
+    } catch {
+      setReceiptError("Lỗi khi xử lý file. Vui lòng thử lại.");
+      setReceiptViewState("upload");
     }
   };
+
+  const handleReceiptReset = () => {
+    setReceiptFiles([]);
+    setReceiptData(null);
+    setReceiptError("");
+    setReceiptViewState("upload");
+  };
+
+  // ─── Styling helpers ──────────────────────────────────────────────────────────
+
+  const getButtonGradient = () => {
+    switch (category) {
+      case "fish_feed": return "bg-linear-to-r from-blue-600 to-blue-700";
+      case "fertilizer": return "bg-linear-to-r from-emerald-600 to-emerald-700";
+      case "seed": return "bg-linear-to-r from-green-600 to-green-700";
+      default: return "bg-linear-to-r from-purple-600 to-purple-700";
+    }
+  };
+
+  // ─── Render ───────────────────────────────────────────────────────────────────
 
   return (
     <div className="min-h-screen bg py-8 px-4">
       <div className="container mx-auto max-w-2xl">
+
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2">🌾 Nhận diện sản phẩm</h1>
-          <p className="text-lg opacity-90">
-            Tải ảnh sản phẩm để trích xuất thông tin
-          </p>
+        <div className="text-center mb-6">
+          <h1 className="text-4xl font-bold mb-2">🌾 Nhận diện nông nghiệp</h1>
+          <p className="text-lg opacity-90">Tải ảnh để trích xuất thông tin sản phẩm hoặc chứng từ</p>
         </div>
 
-        {/* Error Alert */}
-        {error && (
-          <div className="mb-6 bg-red-100 border-l-4 border-red-500 p-4 rounded text-red-700 text-center">
-            {error}
-          </div>
+        {/* Mode Toggle Tab Bar */}
+        <div className="flex rounded-xl overflow-hidden border border-gray-200 mb-6 shadow-sm bg-white">
+          <button
+            onClick={() => handleModeSwitch("product")}
+            className={`flex-1 py-3 text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+              appMode === "product"
+                ? "bg-purple-600 text-white shadow-inner"
+                : "text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            🌿 Nhận diện sản phẩm
+          </button>
+          <button
+            onClick={() => handleModeSwitch("receipt")}
+            className={`flex-1 py-3 text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+              appMode === "receipt"
+                ? "bg-amber-500 text-white shadow-inner"
+                : "text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            🧾 Đọc phiếu nhập hàng
+          </button>
+        </div>
+
+        {/* ── PRODUCT MODE ────────────────────────────────────────────────────── */}
+        {appMode === "product" && (
+          <>
+            {productError && (
+              <div className="mb-6 bg-red-100 border-l-4 border-red-500 p-4 rounded text-red-700 text-center">
+                {productError}
+              </div>
+            )}
+            <div className="bg-white rounded-xl shadow-xl p-8">
+              {productViewState === "upload" && (
+                <>
+                  <ImageUpload
+                    onFilesSelected={handleFilesSelected}
+                    category={category}
+                    onCategoryChange={setCategory}
+                    searchMode={searchMode}
+                    onSearchModeChange={setSearchMode}
+                    isLoading={false}
+                  />
+                  <button
+                    onClick={handleProductSubmit}
+                    disabled={selectedFiles.length === 0}
+                    className={`w-full mt-8 py-3 text-white font-semibold rounded-lg hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all ${getButtonGradient()}`}
+                  >
+                    Phân tích ảnh
+                  </button>
+                </>
+              )}
+
+              {productViewState === "loading" && <LoadingIndicator />}
+
+              {productViewState === "results" && displayData && (
+                <>
+                  {/* Comparison Toggle */}
+                  {originalData && productData && (
+                    <div className="flex items-center justify-between mb-6 px-4 py-3 bg-indigo-50 rounded-lg border border-indigo-100">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-900">
+                          {showEnriched ? "📡 Kết quả sau tra cứu" : "📷 Kết quả gốc từ ảnh"}
+                        </span>
+                        {searchMetadata?.search_status === "enriched" && showEnriched && (
+                          <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
+                            {searchMode === "interactive" ? "Tra cứu thông minh" : "Đã tra cứu"}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-500">So sánh</span>
+                        <Switch checked={showEnriched} onCheckedChange={setShowEnriched} />
+                      </div>
+                    </div>
+                  )}
+
+                  {category === "pesticide" && (
+                    <PesticideResults data={displayData} images={selectedFiles} onReset={handleProductReset} />
+                  )}
+                  {category === "fertilizer" && (
+                    <FertilizerResults data={displayData} images={selectedFiles} onReset={handleProductReset} />
+                  )}
+                  {category === "fish_feed" && (
+                    <FishFeedResults data={displayData} images={selectedFiles} onReset={handleProductReset} />
+                  )}
+                  {category === "seed" && (
+                    <SeedResults data={displayData} images={selectedFiles} onReset={handleProductReset} />
+                  )}
+
+                  {searchMetadata?.source_url && showEnriched && (
+                    <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg text-center">
+                      <p className="text-xs text-gray-500 mb-1">Nguồn dữ liệu chính thức</p>
+                      <a
+                        href={searchMetadata.source_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:underline break-all"
+                      >
+                        {searchMetadata.source_url}
+                      </a>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </>
         )}
 
-        {/* Main Card */}
-        <div className="bg-white rounded-xl shadow-xl p-8">
-          {viewState === "upload" && (
-            <>
-              <ImageUpload
-                onFilesSelected={handleFilesSelected}
-                category={category}
-                onCategoryChange={setCategory}
-                searchMode={searchMode}
-                onSearchModeChange={setSearchMode}
-                isLoading={false}
-              />
-              <button
-                onClick={handleSubmit}
-                disabled={selectedFiles.length === 0}
-                className={`w-full mt-8 py-3 text-white font-semibold rounded-lg hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all ${getButtonGradient()}`}
-              >
-                Phân tích ảnh
-              </button>
-            </>
-          )}
-
-          {viewState === "loading" && <LoadingIndicator />}
-
-          {viewState === "results" && displayData && (
-            <>
-              {/* Comparison Toggle — only when both original and enriched exist */}
-              {originalData && productData && (
-                <div className="flex items-center justify-between mb-6 px-4 py-3 bg-indigo-50 rounded-lg border border-indigo-100">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-gray-900">
-                      {showEnriched
-                        ? "📡 Kết quả sau tra cứu"
-                        : "📷 Kết quả gốc từ ảnh"}
-                    </span>
-                    {searchMetadata?.search_status === "enriched" &&
-                      showEnriched && (
-                        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
-                          {searchMode === "interactive"
-                            ? "Tra cứu thông minh"
-                            : "Đã tra cứu"}
-                        </span>
-                      )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500">So sánh</span>
-                    <Switch
-                      checked={showEnriched}
-                      onCheckedChange={setShowEnriched}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Results by category */}
-              {category === "pesticide" && (
-                <PesticideResults
-                  data={displayData}
-                  images={selectedFiles}
-                  onReset={handleReset}
-                />
-              )}
-              {category === "fertilizer" && (
-                <FertilizerResults
-                  data={displayData}
-                  images={selectedFiles}
-                  onReset={handleReset}
-                />
-              )}
-              {category === "fish_feed" && (
-                <FishFeedResults
-                  data={displayData}
-                  images={selectedFiles}
-                  onReset={handleReset}
-                />
-              )}
-              {category === "seed" && (
-                <SeedResults
-                  data={displayData}
-                  images={selectedFiles}
-                  onReset={handleReset}
-                />
-              )}
-
-              {/* Government source URL */}
-              {searchMetadata?.source_url && showEnriched && (
-                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg text-center">
-                  <p className="text-xs text-gray-500 mb-1">
-                    Nguồn dữ liệu chính thức
-                  </p>
-                  <a
-                    href={searchMetadata.source_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-blue-600 hover:underline break-all"
+        {/* ── RECEIPT MODE ────────────────────────────────────────────────────── */}
+        {appMode === "receipt" && (
+          <>
+            {receiptError && (
+              <div className="mb-6 bg-red-100 border-l-4 border-red-500 p-4 rounded text-red-700 text-center">
+                {receiptError}
+              </div>
+            )}
+            <div className="bg-white rounded-xl shadow-xl p-8">
+              {receiptViewState === "upload" && (
+                <>
+                  <ReceiptUpload
+                    onFilesSelected={handleReceiptFilesSelected}
+                    isLoading={false}
+                  />
+                  <button
+                    onClick={handleReceiptSubmit}
+                    disabled={receiptFiles.length === 0}
+                    className="w-full mt-8 py-3 bg-linear-to-r from-amber-500 to-orange-600 text-white font-semibold rounded-lg hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   >
-                    {searchMetadata.source_url}
-                  </a>
-                </div>
+                    Phân tích phiếu
+                  </button>
+                </>
               )}
-            </>
-          )}
-        </div>
+
+              {receiptViewState === "loading" && <LoadingIndicator />}
+
+              {receiptViewState === "results" && receiptData && (
+                <ReceiptResults
+                  response={receiptData}
+                  files={receiptFiles}
+                  onReset={handleReceiptReset}
+                />
+              )}
+            </div>
+          </>
+        )}
+
       </div>
     </div>
   );

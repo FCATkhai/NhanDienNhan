@@ -1,8 +1,21 @@
 import { useState, useEffect } from "react";
-import { AlertCircle, CheckCircle2, AlertTriangle, X, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  AlertTriangle,
+  X,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  FileText,
+} from "lucide-react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import type { ProductInfo, ReviewWarning } from "../apis/imageApi";
 import { getFieldWarning } from "../apis/imageApi";
+import { Document, Page, pdfjs } from "react-pdf";
+
+// Configure pdfjs worker via CDN — works out of the box with Vite
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -60,6 +73,7 @@ interface ImageGalleryProps {
 export function ImageGallery({ images, accentColor }: ImageGalleryProps) {
   const [selectedImgIndex, setSelectedImgIndex] = useState<number | null>(null);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [numPages, setNumPages] = useState<number | null>(null);
 
   useEffect(() => {
     const urls = images.map((file) => URL.createObjectURL(file));
@@ -69,32 +83,59 @@ export function ImageGallery({ images, accentColor }: ImageGalleryProps) {
     };
   }, [images]);
 
+  // Reset page count when switching files
+  useEffect(() => {
+    setNumPages(null);
+  }, [selectedImgIndex]);
+
+  function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
+    setNumPages(numPages);
+  }
+
   const colors = ACCENT_CLASSES[accentColor];
+
+  const selectedFile = selectedImgIndex !== null ? images[selectedImgIndex] : null;
+  const isPdf = selectedFile
+    ? selectedFile.type === "application/pdf" || selectedFile.name.toLowerCase().endsWith(".pdf")
+    : false;
 
   return (
     <>
       <div className={`border-b-2 ${colors.border} pb-6 text-center`}>
         <h3 className="text-sm font-semibold text-gray-900 mb-4">
-          📷 Ảnh đã tải lên ({images.length}){" "}
+          📷 File đã tải lên ({images.length}){" "}
           <span className="text-xs font-normal text-gray-400">
             — bấm để xem chi tiết
           </span>
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {images.map((_, index) => {
+          {images.map((file, index) => {
             const url = imageUrls[index];
+            const fileIsPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
             return (
               <div
                 key={index}
                 onClick={() => url && setSelectedImgIndex(index)}
-                className="relative rounded-lg overflow-hidden bg-gray-100 aspect-square cursor-pointer hover:ring-2 hover:ring-purple-500 hover:scale-[1.02] transition-all"
+                className="relative rounded-lg overflow-hidden bg-gray-100 aspect-square cursor-pointer hover:ring-2 hover:ring-purple-500 hover:scale-[1.02] transition-all flex items-center justify-center border border-gray-200"
               >
-                {url && (
-                  <img
-                    src={url}
-                    alt={`Uploaded ${index + 1}`}
-                    className="w-full h-full object-cover pointer-events-none"
-                  />
+                {fileIsPdf ? (
+                  <div className="flex flex-col items-center justify-center p-4 bg-red-50 text-red-700 w-full h-full gap-2">
+                    <FileText className="h-10 w-10 text-red-500" />
+                    <span className="text-xs font-semibold text-center line-clamp-2 break-all px-1 leading-tight">
+                      {file.name}
+                    </span>
+                    <span className="text-[10px] bg-red-100 px-1.5 py-0.5 rounded text-red-800 font-medium">
+                      PDF
+                    </span>
+                  </div>
+                ) : (
+                  url && (
+                    <img
+                      src={url}
+                      alt={`Uploaded ${index + 1}`}
+                      className="w-full h-full object-cover pointer-events-none"
+                    />
+                  )
                 )}
               </div>
             );
@@ -102,18 +143,24 @@ export function ImageGallery({ images, accentColor }: ImageGalleryProps) {
         </div>
       </div>
 
-      {/* ── Zoom / Pan / Pick Modal ── */}
+      {/* ── Viewer Modal ── */}
       {selectedImgIndex !== null && (
         <div
-          className="fixed inset-0 bg-black/90 z-[9999] flex flex-col p-4 md:p-6 select-none"
+          className="fixed inset-0 bg-black/90 z-[9999] flex flex-col p-4 md:p-6"
           style={{ backdropFilter: "blur(4px)" }}
         >
           {/* Header */}
           <div className="flex items-center justify-between text-white mb-3 shrink-0">
             <div>
-              <h3 className="text-base font-bold">So sánh & Kiểm tra ảnh</h3>
+              <h3 className="text-base font-bold">
+                {isPdf ? "Xem tài liệu PDF" : "So sánh & Kiểm tra ảnh"}
+              </h3>
               <p className="text-xs text-gray-400">
-                Cuộn / chụm ngón tay để phóng to • Kéo để di chuyển
+                {isPdf
+                  ? numPages
+                    ? `${numPages} trang — cuộn để xem toàn bộ`
+                    : "Đang tải..."
+                  : "Cuộn / chụm ngón tay để phóng to • Kéo để di chuyển"}
               </p>
             </div>
             <button
@@ -124,75 +171,114 @@ export function ImageGallery({ images, accentColor }: ImageGalleryProps) {
             </button>
           </div>
 
-          {/* Zoom area */}
+          {/* Content area */}
           <div className="flex-1 relative overflow-hidden bg-neutral-950 rounded-xl min-h-0">
-            <TransformWrapper
-              key={selectedImgIndex}
-              initialScale={1}
-              minScale={0.3}
-              maxScale={10}
-              centerOnInit
-            >
-              {({ zoomIn, zoomOut, resetTransform }) => (
-                <>
-                  {/* Controls */}
-                  <div className="absolute top-3 left-3 flex gap-2 z-10">
-                    <button
-                      onClick={() => zoomIn()}
-                      className="p-2 rounded-lg bg-black/60 hover:bg-black/80 text-white border border-white/10 transition-colors"
-                      title="Phóng to"
-                    >
-                      <ZoomIn className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => zoomOut()}
-                      className="p-2 rounded-lg bg-black/60 hover:bg-black/80 text-white border border-white/10 transition-colors"
-                      title="Thu nhỏ"
-                    >
-                      <ZoomOut className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => resetTransform()}
-                      className="p-2 rounded-lg bg-black/60 hover:bg-black/80 text-white border border-white/10 transition-colors"
-                      title="Đặt lại"
-                    >
-                      <RotateCcw className="h-4 w-4" />
-                    </button>
-                  </div>
+            {isPdf ? (
+              /* ── PDF: all pages stacked, native scroll (Google Drive style) ── */
+              <div className="w-full h-full overflow-y-auto overflow-x-auto py-6">
+                <Document
+                  file={selectedFile}
+                  onLoadSuccess={onDocumentLoadSuccess}
+                  loading={
+                    <div className="text-gray-400 flex items-center justify-center h-64 text-sm font-medium">
+                      Đang tải tài liệu...
+                    </div>
+                  }
+                  error={
+                    <div className="text-red-400 flex items-center justify-center h-64 text-sm font-medium">
+                      Không thể tải tài liệu PDF
+                    </div>
+                  }
+                  className="flex flex-col items-center gap-4"
+                >
+                  {numPages &&
+                    Array.from({ length: numPages }, (_, i) => (
+                      <div
+                        key={i}
+                        className="bg-white shadow-2xl rounded"
+                        style={{ width: "fit-content" }}
+                      >
+                        <Page
+                          pageNumber={i + 1}
+                          renderTextLayer={false}
+                          renderAnnotationLayer={false}
+                          width={Math.min(window.innerWidth - 48, 800)}
+                        />
+                      </div>
+                    ))}
+                </Document>
+              </div>
+            ) : (
+              /* ── Image: zoom/pan ── */
+              <TransformWrapper
+                key={selectedImgIndex}
+                initialScale={1}
+                minScale={0.3}
+                maxScale={10}
+                centerOnInit
+              >
+                {({ zoomIn, zoomOut, resetTransform }) => (
+                  <>
+                    {/* Controls */}
+                    <div className="absolute top-3 left-3 flex gap-2 z-10 items-center">
+                      <button
+                        onClick={() => zoomIn()}
+                        className="p-2 rounded-lg bg-black/60 hover:bg-black/80 text-white border border-white/10 transition-colors"
+                        title="Phóng to"
+                      >
+                        <ZoomIn className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => zoomOut()}
+                        className="p-2 rounded-lg bg-black/60 hover:bg-black/80 text-white border border-white/10 transition-colors"
+                        title="Thu nhỏ"
+                      >
+                        <ZoomOut className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => resetTransform()}
+                        className="p-2 rounded-lg bg-black/60 hover:bg-black/80 text-white border border-white/10 transition-colors"
+                        title="Đặt lại"
+                      >
+                        <RotateCcw className="h-4 w-4" />
+                      </button>
+                    </div>
 
-                  <TransformComponent
-                    wrapperStyle={{ width: "100%", height: "100%" }}
-                    contentStyle={{
-                      width: "100%",
-                      height: "100%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    {imageUrls[selectedImgIndex] && (
-                      <img
-                        src={imageUrls[selectedImgIndex]}
-                        alt={`Zoomed ${selectedImgIndex + 1}`}
-                        style={{
-                          maxHeight: "100%",
-                          maxWidth: "100%",
-                          objectFit: "contain",
-                        }}
-                        className="cursor-grab active:cursor-grabbing"
-                      />
-                    )}
-                  </TransformComponent>
-                </>
-              )}
-            </TransformWrapper>
+                    <TransformComponent
+                      wrapperStyle={{ width: "100%", height: "100%" }}
+                      contentStyle={{
+                        width: "100%",
+                        height: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {imageUrls[selectedImgIndex] && (
+                        <img
+                          src={imageUrls[selectedImgIndex]}
+                          alt={`Zoomed ${selectedImgIndex + 1}`}
+                          style={{
+                            maxHeight: "100%",
+                            maxWidth: "100%",
+                            objectFit: "contain",
+                          }}
+                          className="cursor-grab active:cursor-grabbing"
+                        />
+                      )}
+                    </TransformComponent>
+                  </>
+                )}
+              </TransformWrapper>
+            )}
           </div>
 
           {/* Thumbnail strip */}
           {images.length > 1 && (
             <div className="flex justify-center gap-3 mt-3 overflow-x-auto py-1 shrink-0">
-              {images.map((_, idx) => {
+              {images.map((file, idx) => {
                 const url = imageUrls[idx];
+                const fileIsPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
                 return (
                   <button
                     key={idx}
@@ -203,12 +289,19 @@ export function ImageGallery({ images, accentColor }: ImageGalleryProps) {
                         : "border-transparent opacity-50 hover:opacity-90 hover:scale-105"
                     }`}
                   >
-                    {url && (
-                      <img
-                        src={url}
-                        alt={`Thumbnail ${idx + 1}`}
-                        className="w-full h-full object-cover"
-                      />
+                    {fileIsPdf ? (
+                      <div className="w-full h-full flex flex-col items-center justify-center bg-red-50 text-red-700 p-1 border border-red-200">
+                        <FileText className="h-6 w-6 text-red-500" />
+                        <span className="text-[8px] font-bold truncate max-w-full px-0.5">PDF</span>
+                      </div>
+                    ) : (
+                      url && (
+                        <img
+                          src={url}
+                          alt={`Thumbnail ${idx + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      )
                     )}
                   </button>
                 );
@@ -220,6 +313,7 @@ export function ImageGallery({ images, accentColor }: ImageGalleryProps) {
     </>
   );
 }
+
 
 
 // ─── ErrorState ─────────────────────────────────────────────
