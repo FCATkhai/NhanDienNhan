@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import imageRoutes from "./routes/imageRoutes";
+import receiptRoutes from "./routes/receiptRoutes";
 import { errorHandler } from "./middleware/error.middleware";
 
 const app = express();
@@ -21,6 +22,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Image processing routes
 app.use("/api/image", imageRoutes);
+app.use("/api/receipt", receiptRoutes);
 app.get("/", (req, res) => {
   res.send("Welcome to the Image Analysis API\n");
 });

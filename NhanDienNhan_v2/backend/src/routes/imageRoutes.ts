@@ -6,7 +6,7 @@ import {
   processImagesWithOpenAI_chatCompletions,
   processImagesTest,
 } from "../services/analyze/imageProcessor.js";
-import { buildPrompt, test_prompt } from "../utils/prompts.js";
+import { buildPrompt, test_prompt } from "../utils/prompts/productPrompts.js";
 import { enrichWithSearch } from "../services/search/index.js";
 
 const router = express.Router();

@@ -213,6 +213,7 @@ export function buildPrompt(
     case "seed":
       return seed_prompt; // seed don't have search feature yet
     default:
-      throw new Error(`Unsupported category: ${target_category}`);
+      // throw new Error(`Unsupported category: ${target_category}`);
+      return pesticide_prompt; // default to pesticide prompt to avoid breaking, but this should never happen
   }
 }

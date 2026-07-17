@@ -41,6 +41,14 @@ export function formatDatesInProductInfo(
     }
   }
 
+  // Format purchase date if present
+  if (formatted.purchase_date && typeof formatted.purchase_date === "string") {
+    const formattedPurchaseDate = formatDateString(formatted.purchase_date);
+    if (formattedPurchaseDate) {
+      formatted.purchase_date = formattedPurchaseDate;
+    }
+  }
+
   // Handle expiry date
   if (formatted.exp_date && typeof formatted.exp_date === "string") {
     // Check if exp_date is a shelf life (contains Vietnamese keywords or time units)

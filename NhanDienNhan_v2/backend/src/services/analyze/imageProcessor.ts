@@ -8,13 +8,9 @@ import {
   PesticideResponseSchemaWithSearch,
   FertilizerResponseSchemaWithSearch,
 } from "@backend/validation/productInfo";
+import { ReceiptResponseSchema } from "@backend/validation/receiptInfo";
 import { formatDatesInResponse } from "../../utils/dateProcessor";
 import { client } from "../../utils/llmModel";
-
-// const client = new OpenAI({
-//   apiKey: process.env.wokushop_api_key,
-//   baseURL: "https://llm.wokushop.com/v1/",
-// });
 
 const schemaTypeToModelMap: {
   [key in SchemaType]: string;
@@ -22,7 +18,8 @@ const schemaTypeToModelMap: {
   fish_feed: "gemini-3-flash-preview",
   pesticide: "gemini-3.1-flash-lite",
   fertilizer: "gemini-3.1-flash-lite",
-  seed: "gemini-3.5-flash",
+  seed: "gemini-3.1-flash-lite",
+  receipt: "gemini-3.1-flash-lite",
 };
 
 // Change model when error
@@ -81,7 +78,9 @@ export const processImagesWithOpenAI = async (
               ? FertilizerResponseSchema
               : schemaType === "seed"
                 ? SeedResponseSchema
-                : PesticideResponseSchema,
+                : schemaType === "receipt"
+                  ? ReceiptResponseSchema
+                  : PesticideResponseSchema,
           "schema",
         ),
       },
@@ -157,9 +156,11 @@ export const processImagesWithOpenAI_chatCompletions = async (
             : FertilizerResponseSchema
           : schemaType === "seed"
             ? SeedResponseSchema
-            : withSearchSchema
-              ? PesticideResponseSchemaWithSearch
-              : PesticideResponseSchema;
+            : schemaType === "receipt"
+              ? ReceiptResponseSchema
+              : withSearchSchema
+                ? PesticideResponseSchemaWithSearch
+                : PesticideResponseSchema;
 
     // Gọi hàm qua client.chat.completions.create
     let response;
@@ -267,6 +268,8 @@ export const processImagesTest = async (
       targetSchema = PesticideResponseSchema;
     } else if (schemaType === "fertilizer") {
       targetSchema = FertilizerResponseSchema;
+    } else if (schemaType === "receipt") {
+      targetSchema = ReceiptResponseSchema;
     }
 
     // Gọi hàm qua client.chat.completions.create
