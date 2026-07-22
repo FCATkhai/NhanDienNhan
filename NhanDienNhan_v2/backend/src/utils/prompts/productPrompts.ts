@@ -21,29 +21,6 @@ Nếu ảnh quá mờ, không đọc được chữ, không phải sản phẩm 
 - các field còn lại để null hoặc mảng rỗng
 `;
 
-//tight prompt
-// export const pesticide_prompt = `
-// Dựa vào hình ảnh, hãy trích xuất thông tin sản phẩm.
-
-// QUY TẮC TRÍCH XUẤT (TUYỆT ĐỐI TUÂN THỦ):
-// 1. CHỈ TRÍCH XUẤT NHỮNG GÌ NHÌN THẤY RÕ RÀNG TRÊN ẢNH. Tuyệt đối không tự ý suy luận, nội suy hoặc đoán dữ liệu bị thiếu dựa trên kiến thức bên ngoài hoặc các sản phẩm tương tự. (Ví dụ: Không được tự điền liều lượng sử dụng, thời gian cách ly, hay hàm lượng hoạt chất nếu phần nhãn đó bị mờ hoặc che lấp).
-
-// QUY TẮC BÁO CÁO CẢNH BÁO (REVIEW WARNINGS):
-// Bạn BẮT BUỘC phải thêm thông tin vào mảng \`review_warnings\` trong \`metadata\` nếu rơi vào các trường hợp sau:
-// - BỊ CHE KHUẤT/RÁCH/GẠCH XÓA: Vùng dữ liệu cần trích xuất bị rách, gạch chéo, dính bẩn, lóa sáng tem phản quang hoặc bị nét bút bôi che khuất. (issue: "OBSCURED_DATA")
-// - MỜ/CHÓI SÁNG/CHỮ QUÁ NHỎ: Chữ trên nhãn không thể đọc chắc chắn. (issue: "BLURRY_TEXT")
-// Nếu gặp các tình huống này, hãy để giá trị của trường đó là null (ví dụ: \`active_ingredients\`, \`dosage\`, \`target_crops\` = null), và CHẮC CHẮN phải thêm đường dẫn của trường đó vào \`review_warnings\` kèm giải thích chi tiết lý do.
-
-// XỬ LÝ ẢNH LỖI NẶNG:
-// Nếu ảnh quá mờ toàn bộ, không đọc được bất kỳ chữ nào, không phải sản phẩm thuốc BVTV/phân bón, hoặc không có nhãn:
-// - success = false
-// - điền error_code phù hợp
-// - message mô tả lỗi cho UI
-// - các field còn lại để null hoặc mảng rỗng
-
-// Trả về JSON thoả mãn schema, chỉ trả về JSON, không giải thích gì thêm.
-// `;
-
 export const fertilizer_prompt = `
 Dựa vào hình ảnh, hãy trích xuất thông tin sản phẩm phân bón. 
 
@@ -154,9 +131,6 @@ Nếu ảnh quá mờ, không đọc được chữ, không phải sản phẩm 
 - các field còn lại để null hoặc mảng rỗng
 `;
 
-export const test_prompt = `
-Is this pesticide label correctly oriented (text readable, not rotated/flipped)? Reply ONLY with JSON: {"degrees": 0, "confident": true} degrees = how many degrees CW to rotate to fix it (0/90/180/270).
-`;
 // test raw result from model for debugging
 // Dựa vào hình ảnh, hãy trích toàn bộ thông tin được in trên nhãn. Hãy cố gắng trích xuất càng nhiều thông tin càng tốt.
 

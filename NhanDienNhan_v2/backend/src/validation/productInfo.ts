@@ -138,9 +138,10 @@ export const PesticideDataSchema = BaseProductDataSchema.extend({
   pre_harvest_interval_days: z
     .number()
     .int()
-    .nullable()
+    // .nullable()
+    .default(7)
     .describe(
-      "Thời gian cách ly trước thu hoạch, thường được in trên nhãn với nội dung 'ngừng sử dụng X ngày trước khi thu hoạch', có thể được tách riêng thành mục riêng hoặc nằm trong phần hướng dẫn sử dụng chung. Nếu có khoảng thời gian như '7-10 ngày', thì trả về ngày lớn nhất (VD: 10)",
+      "Thời gian cách ly trước thu hoạch, thường được in trên nhãn với nội dung 'ngừng sử dụng X ngày trước khi thu hoạch', có thể được tách riêng thành mục riêng hoặc nằm trong phần hướng dẫn sử dụng chung. Nếu có khoảng thời gian như '7-10 ngày', thì trả về ngày lớn nhất (VD: 10). Nếu không tìm thấy thông tin này trên nhãn, thì mặc định là 7 ngày.",
     ),
 });
 
@@ -206,9 +207,10 @@ export const FertilizerDataSchema = BaseProductDataSchema.extend({
   pre_harvest_interval_days: z
     .number()
     .int()
-    .nullable()
+    // .nullable()
+    .default(7)
     .describe(
-      "Thời gian cách ly trước thu hoạch, thường được in trên nhãn với nội dung 'ngừng sử dụng X ngày trước khi thu hoạch', có thể được tách riêng thành mục riêng hoặc nằm trong phần hướng dẫn sử dụng chung. Nếu có khoảng thời gian như '7-10 ngày', thì trả về ngày lớn nhất (VD: 10)",
+      "Thời gian cách ly trước thu hoạch, thường được in trên nhãn với nội dung 'ngừng sử dụng X ngày trước khi thu hoạch', có thể được tách riêng thành mục riêng hoặc nằm trong phần hướng dẫn sử dụng chung. Nếu có khoảng thời gian như '7-10 ngày', thì trả về ngày lớn nhất (VD: 10). Nếu không tìm thấy thông tin này trên nhãn, thì mặc định là 7 ngày.",
     ),
 });
 
